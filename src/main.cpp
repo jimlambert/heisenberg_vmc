@@ -5,9 +5,7 @@
 
 using namespace std;
 
-int main(){
- 
-  int L = 8; 
+int main() {
   VMC::ParamList_t params;
   VMC::BCSVarParam onsite;
   VMC::BCSVarParam nnhop;
@@ -26,9 +24,8 @@ int main(){
   pairing.space=2;
   pairing.type=VMC::Pairing;
   params.push_back(onsite);
-  //params.push_back(nnhop);
-  //params.push_back(nnnhop);
+  params.push_back(nnhop);
+  params.push_back(nnnhop);
   params.push_back(pairing);
-  VMC::BCSChainHamiltonian bcsChain(L, 5, params);
   return 0;
 }

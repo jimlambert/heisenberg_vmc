@@ -7,24 +7,21 @@
 namespace VMC{
 
 BCSChainHamiltonian::BCSChainHamiltonian
-(const size_t& L, const size_t& N, const ParamList_t& params) 
-: _size(L), _nele(N), reinit(params){
-  std::cout << _bcsmatrix << std::endl;
-}
+(const size_t& L, const ParamList_t& params) : _size(L) {reinit(params);}
 
-void BCSChainHamiltonian::reinit(const ParamList_t& params){
+void BCSChainHamiltonian::reinit(const ParamList_t& params) {
   _bcsmatrix = Eigen::MatrixXd::Zero(_size, _size);
   for(auto it=params.begin(); it!=params.end(); it++)
-  switch(it->type){
+  switch(it->type) { 
     case Onsite:
-      for(size_t i=0; i<_size; i++){
+      for(size_t i=0; i<_size; i++) {
         if(i<(_size/2)) _bcsmatrix(i, i)=-1.0*it->val;
         else _bcsmatrix(i, i)=it->val;
       }
       break;
     case Hopping:
       for(size_t i=0; i<_size; i++){
-        if(i<(_size/2)){
+        if(i<(_size/2)) {
           _bcsmatrix(i, (i+it->space)%(_size/2))+=it->val;
           _bcsmatrix((i+it->space)%(_size/2), i)+=it->val;
         } 
@@ -35,12 +32,24 @@ void BCSChainHamiltonian::reinit(const ParamList_t& params){
       }
       break;
     case Pairing:
-      for(size_t i=0; i<_size/2; i++){
+      for(size_t i=0; i<_size/2; i++) {
         _bcsmatrix(i, (i+it->space)%(_size/2)+_size/2)+=it->val;
         _bcsmatrix((i+it->space)%(_size/2)+_size/2, i)+=it->val;
       }
       break;
   }
+}
+
+Eigen::MatrixXd BCSChainHamiltonian::get_reduced_matrix
+(const std::vector<size_t>& posvec) {
+  size_t n = posvec.size();
+  Eigen::MatrixXd _evecs = get_eigenvecs();
+  Eigen::MatrixXd redmat(_size, n);
+  for(size_t i=0; i<_size; i++)
+  for(size_t j=0; j<n; j++){
+  
+  }
+  return redmat;
 }
 }
 

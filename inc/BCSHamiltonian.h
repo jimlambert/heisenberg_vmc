@@ -1,8 +1,17 @@
+// -----------------------------------------------------------------------------
+// CLASS: BCSChainHamiltonian
+// -----------------------------------------------------------------------------
+// Class for a BCSChainHamiltonian constructed in the particle-hole basis. The
+// lattice of the original Hamiltonian would be of length L, with the
+// transformed Hamiltonian having length 2L.
+// -----------------------------------------------------------------------------
+
 #ifndef BCS_HAMILTONIAN
 #define BCS_HAMILTONIAN
 
 #include <vector>
 #include <Eigen/Dense>
+#include <iostream>
 #include "VarParam.h"
 
 namespace VMC{
@@ -10,17 +19,14 @@ namespace VMC{
 class BCSChainHamiltonian{
   private:
     size_t _size;
-    size_t _nele;
     Eigen::MatrixXd _bcsmatrix;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> _solver;  
   public:
-    BCSChainHamiltonian(const size_t&,    // _size 
-                        const size_t&,    // _nele
-                        const ParamList_t&  // list of parameters as vector
-                       );
+    BCSChainHamiltonian(const size_t&, const ParamList_t&);
     void solve(){_solver.compute(_bcsmatrix);}
     void reinit(const ParamList_t&);
-    Eigen::MatrixXd get_reduced_matrix();
+    void display_matrix(){std::cout << _bcsmatrix << std::endl;}
+    Eigen::MatrixXd get_reduced_matrix(const std::vector<size_t>&);
     Eigen::MatrixXd get_eigenvecs(){return _solver.eigenvectors();}
     Eigen::MatrixXd get_eigenvals(){return _solver.eigenvalues();}
 };
