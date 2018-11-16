@@ -23,10 +23,12 @@ class HeisenbergChainSimulator {
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
     Eigen::MatrixXd _gmat; // Green's function matrix
     void _genstate();   // generate a random state
-    void _flipspin();   // single spin flip operation
     void _reinitgmat(); // reinitialize _gmat every few steps
   public:
     HeisenbergChainSimulator(const size_t&, const ParamList_t&);
+    void _flipspin();   // single spin flip operation
+    void print_spinstate();
+    void print_operslist();
 };
 
 }

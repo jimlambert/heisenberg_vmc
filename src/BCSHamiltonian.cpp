@@ -41,14 +41,12 @@ void BCSChainHamiltonian::reinit(const ParamList_t& params) {
 }
 
 Eigen::MatrixXd BCSChainHamiltonian::get_reduced_matrix
-(const std::vector<size_t>& posvec) {
-  size_t n = posvec.size();
+(const size_t& nele) {
   Eigen::MatrixXd _evecs = get_eigenvecs();
-  Eigen::MatrixXd redmat(_size, n);
+  Eigen::MatrixXd redmat(_size, nele);
   for(size_t i=0; i<_size; i++)
-  for(size_t j=0; j<n; j++){
-  
-  }
+  for(size_t j=0; j<nele; j++)
+    redmat(i, j)=_evecs(i, j);
   return redmat;
 }
 }

@@ -25,8 +25,8 @@ class BCSChainHamiltonian{
     BCSChainHamiltonian(const size_t&, const ParamList_t&);
     void solve(){_solver.compute(_bcsmatrix);}
     void reinit(const ParamList_t&);
-    void display_matrix(){std::cout << _bcsmatrix << std::endl;}
-    Eigen::MatrixXd get_reduced_matrix(const std::vector<size_t>&);
+    void print_matrix(){std::cout << _bcsmatrix << std::endl;}
+    Eigen::MatrixXd get_reduced_matrix(const size_t&);
     Eigen::MatrixXd get_eigenvecs(){return _solver.eigenvectors();}
     Eigen::MatrixXd get_eigenvals(){return _solver.eigenvalues();}
 };

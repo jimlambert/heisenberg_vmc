@@ -8,6 +8,7 @@
 #ifndef VARPARAM_H
 #define VARPARAM_H
 
+#include <Eigen/Dense>
 #include <vector>
 
 namespace VMC{
@@ -18,6 +19,7 @@ struct BCSVarParam{
   double val;
   int space;
   ParamType type;
+  Eigen::MatrixXd _mmat;
 };
 
 typedef std::vector<BCSVarParam> ParamList_t;
