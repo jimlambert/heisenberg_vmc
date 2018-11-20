@@ -89,7 +89,7 @@ void HeisenbergChainSimulator::_flipspin(){
     for(size_t i=0; i<_size; i++) {
       double d=0;
       if(i==lindex) d=1;
-      b(i)= -1.0*(_gmat(exnpos, i) - d)/_gmat(exnpos, lindex);
+      b(i)= -1.0*(_gmat(exnpos, j) - d)/_gmat(exnpos, lindex);
     }
     _gmat=_gmat+a*b.transpose();
   }
