@@ -29,13 +29,7 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
       }
     }
   } while(projmat.determinant()==0);
-  std::cout << redmat << std::endl;
-  std::cout << "----" << std::endl;
-  std::cout << projmat << std::endl;
-  std::cout << "----" << std::endl;
   _gmat = redmat*projmat.inverse();
-  std::cout << _gmat << std::endl;
-  std::cout << "----" << std::endl;
 }
 
 void HeisenbergChainSimulator::_genstate() {
@@ -57,7 +51,6 @@ void HeisenbergChainSimulator::_genstate() {
 void HeisenbergChainSimulator::_flipspin(){
   double rnum=_rnum(_mteng);
   int rpos=(*_rpos)(_mteng);
-  std::cout << "random position: " << rpos << std::endl;
   size_t exipos;
   size_t exnpos;
   size_t lindex; // index of position in W array
@@ -85,6 +78,7 @@ void HeisenbergChainSimulator::_flipspin(){
     _spinstate[rpos]+=ds;
     Eigen::VectorXd a(2*_size);
     Eigen::VectorXd b(_size);
+    std::cout << _gmat << std::endl;
     for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
     for(size_t i=0; i<_size; i++) {
       double d=0;
@@ -92,6 +86,8 @@ void HeisenbergChainSimulator::_flipspin(){
       b(i)= -1.0*(_gmat(exnpos, i) - d)/_gmat(exnpos, lindex);
     }
     _gmat=_gmat+a*b.transpose();
+    std::cout << "----" << std::endl;
+    std::cout << _gmat << std::endl;
   }
 }
 

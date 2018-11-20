@@ -7,7 +7,10 @@
 namespace VMC{
 
 BCSChainHamiltonian::BCSChainHamiltonian
-(const size_t& L, const ParamList_t& params) : _size(L) {reinit(params);}
+(const size_t& L, const ParamList_t& params) : _size(L) {
+  reinit(params);
+  _solver.compute(_bcsmatrix);
+}
 
 void BCSChainHamiltonian::reinit(const ParamList_t& params) {
   _bcsmatrix = Eigen::MatrixXd::Zero(_size, _size);
@@ -38,6 +41,9 @@ void BCSChainHamiltonian::reinit(const ParamList_t& params) {
       }
       break;
   }
+}
+
+void BCSChainHamiltonian::setopers(const ParamList_t&) {
 }
 
 Eigen::MatrixXd BCSChainHamiltonian::get_reduced_matrix
