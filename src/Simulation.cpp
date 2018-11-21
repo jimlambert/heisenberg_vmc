@@ -10,7 +10,7 @@ namespace VMC {
 namespace SIMULATION {
 
 HeisenbergChainSimulator::HeisenbergChainSimulator
-(const size_t& N, const ParamList_t& params) : _size(N), _auxham(2*N, params) {
+(const size_t& N, ParamList_t& params) : _size(N), _auxham(2*N, params) {
   _rpos = new std::uniform_int_distribution<>(0, _size-1);
   _auxham.solve();
   _spinstate.resize(_size);

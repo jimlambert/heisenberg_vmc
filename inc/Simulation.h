@@ -25,7 +25,7 @@ class HeisenbergChainSimulator {
     void _genstate();   // generate a random state
     void _reinitgmat(); // reinitialize _gmat every few steps
   public:
-    HeisenbergChainSimulator(const size_t&, const ParamList_t&);
+    HeisenbergChainSimulator(const size_t&, ParamList_t&);
     void _flipspin();   // single spin flip operation
     void print_spinstate();
     void print_operslist();

@@ -3,7 +3,13 @@
 // -----------------------------------------------------------------------------
 // Class for a BCSChainHamiltonian constructed in the particle-hole basis. The
 // lattice of the original Hamiltonian would be of length L, with the
-// transformed Hamiltonian having length 2L.
+// transformed Hamiltonian having length 2L. 
+//
+//  METHODS:
+//
+//  init  -   accepts a list of variatonal parameters, constructs BCS
+//            hamiltonian, calls eigen solver, and creates correct operator
+//            representations for each variational parameter.
 // -----------------------------------------------------------------------------
 
 #ifndef BCS_HAMILTONIAN
@@ -22,10 +28,10 @@ class BCSChainHamiltonian{
     Eigen::MatrixXd _bcsmatrix;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> _solver;  
   public:
-    BCSChainHamiltonian(const size_t&, const ParamList_t&);
+    BCSChainHamiltonian(const size_t&, ParamList_t&);
     void solve(){_solver.compute(_bcsmatrix);}
-    void reinit(const ParamList_t&);
-    void setopers(const ParamList_t&);
+    void init(ParamList_t&);
+    void setopers(ParamList_t&);
     void print_matrix(){std::cout << _bcsmatrix << std::endl;}
     Eigen::MatrixXd get_reduced_matrix(const size_t&);
     Eigen::MatrixXd get_eigenvecs(){return _solver.eigenvectors();}

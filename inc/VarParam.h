@@ -19,33 +19,9 @@ struct BCSVarParam{
   double val;
   int space;
   ParamType type;
-  Eigen::MatrixXd _vmat;
-  Eigen::MatrixXd _mmat;
-  BCSVarParam(const double& v, const int& s, type& t, const size_t L) 
-  : val(v), space(s) type(t) {
-    _vmat.resize(L,L)=MatrixXd::Zero(L,L);
-    switch(type) {
-      case Onsite:
-        for(size_t i=0; i<2*L; i++) {
-          if(i<(_size/2)) _vmat(i, i)=-1.0;
-          else _vmat(i, i) = 1; 
-        }
-        break
-      case Hopping:
-        for(size_t i=0; i<_size; i++) {
-          if(i<(_size/2)) {
-            _vmat(i, (i+space)%(_size/2))=1;
-          }
-          else {
-          
-          }
-        } 
-        break
-      case Pairing:
-
-        break
-    }  
-  }
+  Eigen::MatrixXd vmat;
+  Eigen::MatrixXd mmat;
+  BCSVarParam(const double&, const int&, const ParamType&, const size_t); 
 };
 
 typedef std::vector<BCSVarParam> ParamList_t;

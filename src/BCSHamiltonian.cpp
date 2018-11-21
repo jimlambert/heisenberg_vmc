@@ -7,12 +7,9 @@
 namespace VMC{
 
 BCSChainHamiltonian::BCSChainHamiltonian
-(const size_t& L, const ParamList_t& params) : _size(L) {
-  reinit(params);
-  _solver.compute(_bcsmatrix);
-}
+(const size_t& L, ParamList_t& params) : _size(L) {init(params);}
 
-void BCSChainHamiltonian::reinit(const ParamList_t& params) {
+void BCSChainHamiltonian::init(ParamList_t& params) {
   _bcsmatrix = Eigen::MatrixXd::Zero(_size, _size);
   for(auto it=params.begin(); it!=params.end(); it++)
   switch(it->type) { 
@@ -41,9 +38,28 @@ void BCSChainHamiltonian::reinit(const ParamList_t& params) {
       }
       break;
   }
+  _solver.compute(_bcsmatrix);
+  setopers(params);
 }
 
-void BCSChainHamiltonian::setopers(const ParamList_t&) {
+void BCSChainHamiltonian::setopers(ParamList_t& params) {
+  Eigen::MatrixXd U; // unitary transformation
+  Eigen::VectorXd e; // single particle energies
+  U=_solver.eigenvectors();
+  e=_solver.eigenvalues();
+  for(auto it=params.begin(); it!=params.end(); it++) {
+    Eigen::MatrixXd UVU(_size, _size);
+    Eigen::MatrixXd Q(_size, _size);
+    Q = Eigen::MatrixXd::Zero(_size, _size);
+    std::cout << "Structure matrix: " << std::endl;
+    std::cout << it->vmat << std::endl;
+    std::cout << "-----" << std::endl;
+    UVU = U.adjoint()*(it->vmat)*U;
+    for(size_t i=0; i<_size; i++)
+    for(size_t j=0; j<_size; j++)
+    if((i>(_size/2))&&(j<=(_size/2))) Q(i,j)=UVU(i,j)/(e(i)-e(j));
+    it->mmat=U*Q*U.adjoint();
+  } 
 }
 
 Eigen::MatrixXd BCSChainHamiltonian::get_reduced_matrix
