@@ -2,7 +2,10 @@
 #include <complex>
 #include <random>
 #include <vector>
+#include <fstream>
+#include <iostream>
 #include <Eigen/Dense>
+#include "LocalMeasurement.h"
 #include "Simulation.h"
 #include "VarParam.h"
 
@@ -48,7 +51,22 @@ void HeisenbergChainSimulator::_genstate() {
   }
 }
 
-void HeisenbergChainSimulator::_flipspin(){
+void HeisenbergChainSimulator::_reinitgmat() {
+  Eigen::MatrixXd projmat(_size, _size);
+  Eigen::MatrixXd redmat(2*_size, _size);
+  redmat=_auxham.get_reduced_matrix(_size);
+  for(size_t i=0; i<_size; i++) {
+    int pos;
+    if(_spinstate[i]==1) pos=i;
+    else pos=i+_size;
+    for(size_t j=0; j<_size; j++) {
+      projmat(i, j) = redmat(pos, j);
+    }
+  }
+  _gmat = redmat*projmat.inverse();
+}
+
+size_t HeisenbergChainSimulator::_flipspin() {
   double rnum=_rnum(_mteng);
   int rpos=(*_rpos)(_mteng);
   size_t exipos;
@@ -67,10 +85,6 @@ void HeisenbergChainSimulator::_flipspin(){
   }
   lindex=_operslist[exipos]-1;
   double amp=abs(_gmat(exnpos, lindex));
-  //std::cout << "exipos: " << exipos << std::endl;
-  //std::cout << "exnpos: " << exnpos << std::endl;
-  //std::cout << "lindex: " << lindex << std::endl;
-  //std::cout << "probability: " << amp*amp << std::endl;
   // accept flip according to green function
   if(rnum<amp*amp){
     _operslist[exnpos]=_operslist[exipos];
@@ -78,7 +92,6 @@ void HeisenbergChainSimulator::_flipspin(){
     _spinstate[rpos]+=ds;
     Eigen::VectorXd a(2*_size);
     Eigen::VectorXd b(_size);
-    std::cout << _gmat << std::endl;
     for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
     for(size_t i=0; i<_size; i++) {
       double d=0;
@@ -86,9 +99,36 @@ void HeisenbergChainSimulator::_flipspin(){
       b(i)= -1.0*(_gmat(exnpos, i) - d)/_gmat(exnpos, lindex);
     }
     _gmat=_gmat+a*b.transpose();
-    std::cout << "----" << std::endl;
-    std::cout << _gmat << std::endl;
+    return 1;
   }
+  return 0;
+}
+
+void HeisenbergChainSimulator::_sweep() {
+  size_t counter=0;
+  // flip until N electron moves have occured.
+  // while(counter<_size) counter+=_flipspin();
+  for(size_t i=0; i<_size; i++) counter += _flipspin();
+  _reinitgmat();
+}
+
+double HeisenbergChainSimulator::_isingenergy() {
+  double total=0;
+  for(size_t i=0; i<_size; i++) {
+    if(i<(_size-1)) total+=_spinstate[i]*_spinstate[i+1];
+    else total+=_spinstate[0]*_spinstate[i];
+  }
+  return total;
+}
+
+void HeisenbergChainSimulator::optimize() {
+  _equilenergy.open("equilenergy.dat");
+  for(size_t i=0; i<10000; i++) {
+    std::cout << i << std::endl;
+    _sweep();
+    _equilenergy << _isingenergy() << '\n';
+  }  
+  _equilenergy.close();
 }
 
 void HeisenbergChainSimulator::print_spinstate() {

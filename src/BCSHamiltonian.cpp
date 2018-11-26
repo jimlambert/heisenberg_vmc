@@ -51,9 +51,6 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
     Eigen::MatrixXd UVU(_size, _size);
     Eigen::MatrixXd Q(_size, _size);
     Q = Eigen::MatrixXd::Zero(_size, _size);
-    std::cout << "Structure matrix: " << std::endl;
-    std::cout << it->vmat << std::endl;
-    std::cout << "-----" << std::endl;
     UVU = U.adjoint()*(it->vmat)*U;
     for(size_t i=0; i<_size; i++)
     for(size_t j=0; j<_size; j++)

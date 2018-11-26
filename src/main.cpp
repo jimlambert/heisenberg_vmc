@@ -17,7 +17,7 @@ int main() {
   params.push_back(onsite);
   params.push_back(nnhopp);
   params.push_back(nnpair);
-  VMC::BCSChainHamiltonian chain(2*L, params);
-  chain.setopers(params);
+  VMC::HeisChainSim simulation(L, params);
+  simulation.optimize();
   return 0;
 }
