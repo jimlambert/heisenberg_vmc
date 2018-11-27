@@ -121,13 +121,17 @@ double HeisenbergChainSimulator::_isingenergy() {
   return total;
 }
 
-void HeisenbergChainSimulator::optimize() {
+void HeisenbergChainSimulator::optimize
+(const size_t& vsteps, const size_t& equil, const size_t& simul) {
   _equilenergy.open("equilenergy.dat");
-  for(size_t i=0; i<10000; i++) {
-    std::cout << i << std::endl;
-    _sweep();
-    _equilenergy << _isingenergy() << '\n';
-  }  
+  for(size_t varstep=0; varstep<vsteps; varstep++) {
+    // first equilibrate this particular set
+    for(size_t i=0; i<equil; i++) _sweep();
+    for(size_t i=0; i<simul; i++) {
+      _sweep();
+    } 
+  }
+  
   _equilenergy.close();
 }
 

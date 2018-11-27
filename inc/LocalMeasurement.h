@@ -7,18 +7,28 @@ namespace VMC {
 
 class LocalMeasurement {
   private:
-    std::vector<double> _localvals;
+    std::vector<double> _binvals;
+    size_t _binsize;
     size_t _nmeas;
+    size_t _nbins;
     double _total;
   public:
-    LocalMeasurement() {}
+    LocalMeasurement(const size_t& b) : _binsize(b), _nmeas(0), _nbins(0), 
+                                        _total(0.0) {}
     void push(double val) {
-      _localvals.push_back(val);
-      _total += val;
-      _nmeas += 1;
+      if(_nmeas<_binsize-1) {
+        _total += val;
+        _nmeas += 1;
+      }
+      else {
+        _binvals.push_back((double)_total/(double)_nmeas);
+        _nmeas=0;
+        _total=0;
+        _nbins += 1;
+      }
     }
-    double ave() {return _total/(double)_nmeas;}
-    double operator [](const size_t& i) const {return _localvals[i];}
+    size_t nbins() {return _nbins;}
+    double operator [](const size_t& i) const {return _binvals[i];}
 };  
 }
 
