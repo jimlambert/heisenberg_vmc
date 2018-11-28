@@ -24,7 +24,7 @@ namespace VMC{
 
 class BCSChainHamiltonian{
   private:
-    size_t _size;
+    size_t _L;
     Eigen::MatrixXd _bcsmatrix;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> _solver;  
   public:

@@ -26,7 +26,6 @@ class HeisenbergChainSimulator {
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
     Eigen::MatrixXd _gmat; // Green's function matrix
     LocalMeasurement _el{1000}; // local energy
-    std::vector<LocalMeasurement> _varops; // observables for each parameter
     void _genstate();   // generate a random state
     void _reinitgmat(); // reinitialize _gmat every sweep
     size_t _flipspin();   // single spin flip operation
