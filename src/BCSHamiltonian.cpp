@@ -47,6 +47,7 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
   Eigen::VectorXd e; // single particle energies
   U=_solver.eigenvectors();
   e=_solver.eigenvalues();
+  std::cout << U << std::endl;
   for(auto it=params.begin(); it!=params.end(); it++) {
     Eigen::MatrixXd UVU(_L, _L);
     Eigen::MatrixXd Q(_L, _L);

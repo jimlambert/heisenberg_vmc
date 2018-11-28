@@ -130,22 +130,24 @@ void HeisenbergChainSimulator::optimize
     for(size_t i=0; i<equil; i++) _sweep();
     for(size_t i=0; i<simul; i++) {
       _sweep();
-      _el.push_back(_isingenergy);
+      _el.push(_isingenergy());
       // Calculate O_k(x) for each variational parameter
       for(auto it=params.begin(); it!=params.end(); it++) {
         Eigen::MatrixXd redMat(_size, 2*_size); // N_e X 2L matrix
         Eigen::MatrixXd okmat;
         for(size_t l=0; l<_size; l++)
         for(size_t r=0; r<2*_size; r++) {
-          size_t lpos=find(params.begin(), params.end(), l) - params.begin();
+          auto itstart=_operslist.begin();
+          auto itend=_operslist.end();
+          size_t lpos=std::distance(itstart, std::find(itstart, itend, l));
           redMat(l,r) = it->mmat(lpos, r);  
         }
+        // compute actual local value
         okmat=redMat*_gmat;
         it->localvals.push(okmat.trace());
       }
     } 
   }
-  
   _equilenergy.close();
 }
 

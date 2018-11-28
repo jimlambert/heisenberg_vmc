@@ -4,8 +4,8 @@
 namespace VMC {
 
 BCSVarParam::BCSVarParam
-(const double& v, const int& s, const ParamType& t, const size_t L) 
-: val(v), space(s), type(t) {
+(const double& v, const int& s, const ParamType& t, const size_t& L, 
+ const size_t& bs) : localvals(bs), val(v), space(s), type(t) {
   mmat.resize(L,L);
   vmat.resize(L,L);
   vmat=Eigen::MatrixXd::Zero(L,L);
