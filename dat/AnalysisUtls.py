@@ -9,10 +9,12 @@ def ReadEnergies(energyFile):
     return np.array(lines)
 
 def AverageEnergies(energyArray, binSize):
-    binNum=len(energyArray)/binSize
+    binNum=int(len(energyArray)/binSize)
+    energyArray=np.array(energyArray, dtype=float)
     meanEnergies=[]
     for i in range(0, binNum):
         low=i*binSize
         hi=(i+1) * binSize
         meanEnergies.append(mean(energyArray[low:hi]))
     return meanEnergies
+

@@ -19,8 +19,8 @@ int main() {
   VMC::BCSVarParam onsite(1.0, 0, VMC::Onsite, 2*L, binsize);
   VMC::BCSVarParam nnhopp(2.0, 1, VMC::Hopping, 2*L, binsize);
   VMC::BCSVarParam nnpair(-2.0, 1, VMC::Pairing, 2*L, binsize);
-  params.push_back(onsite);
-  params.push_back(nnhopp);
+  //params.push_back(onsite);
+  //params.push_back(nnhopp);
   params.push_back(nnpair);
   VMC::HeisChainSim simulator(L, params);
   simulator.optimize(vstep, equil, simul);

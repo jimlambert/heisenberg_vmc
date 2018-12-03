@@ -124,6 +124,7 @@ double HeisenbergChainSimulator::_isingenergy() {
 
 void HeisenbergChainSimulator::optimize
 (const size_t& vsteps, const size_t& equil, const size_t& simul) {
+  std::cout << "here" << std::endl;
   _equilenergy.open("equilenergy.dat");
   for(size_t varstep=0; varstep<vsteps; varstep++) {
     // first equilibrate this particular set
