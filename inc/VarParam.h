@@ -17,14 +17,15 @@ namespace VMC{
 enum ParamType {Onsite, Hopping, Pairing};
 
 struct BCSVarParam{
-  LocalMeasurement localvals; // value of associated operator 
+  LocalMeasurement lmeas; // local measurements of associated operator 
+  std::string name;
   double val; // current value of variational parameter
   int space; // spacing for operator
   ParamType type; // type of parameter chosen from ParamType
   Eigen::MatrixXd vmat; // matrix defining structure of associated operator
   Eigen::MatrixXd mmat; // matrix used to measure local effect of parameter
   BCSVarParam(const double&, const int&, const ParamType&, const size_t&, 
-              const size_t&);
+              const size_t&, const std::string&);
 };
 
 typedef std::vector<BCSVarParam> ParamList_t;

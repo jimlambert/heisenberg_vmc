@@ -1,11 +1,13 @@
 #include <iostream>
+#include <string>
 #include "VarParam.h"
 
 namespace VMC {
 
 BCSVarParam::BCSVarParam
 (const double& v, const int& s, const ParamType& t, const size_t& L, 
- const size_t& bs) : localvals(bs), val(v), space(s), type(t) {
+ const size_t& bs, const std::string& n) 
+: lmeas(bs), val(v), space(s), type(t), name(n) {
   mmat.resize(L,L);
   vmat.resize(L,L);
   vmat=Eigen::MatrixXd::Zero(L,L);

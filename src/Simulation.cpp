@@ -2,9 +2,12 @@
 #include <complex>
 #include <random>
 #include <vector>
+#include <string>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <Eigen/Dense>
+#include <cmath>
 #include "LocalMeasurement.h"
 #include "Simulation.h"
 #include "VarParam.h"
@@ -13,7 +16,10 @@ namespace VMC {
 namespace SIMULATION {
 
 HeisenbergChainSimulator::HeisenbergChainSimulator
-(const size_t& N, ParamList_t& params) : _size(N), _auxham(2*N, params) {
+(const size_t& N, ParamList_t& params) 
+: _size(N), _auxham(2*N, params) {
+  // THIS SOLUTION SUCKS
+  for(size_t i=0; i<params.size(); i++) _params.push_back(params[i]);
   _rpos = new std::uniform_int_distribution<>(0, _size-1);
   _auxham.solve();
   _spinstate.resize(_size);
@@ -33,7 +39,7 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
     }
   } while(projmat.determinant()==0);
   _gmat = redmat*projmat.inverse();
-  _auxham.setopers(params);
+  _auxham.setopers(_params);
 }
 
 void HeisenbergChainSimulator::_genstate() {
@@ -65,6 +71,53 @@ void HeisenbergChainSimulator::_reinitgmat() {
     }
   }
   _gmat = redmat*projmat.inverse();
+}
+
+void HeisenbergChainSimulator::_updateparams(const double& df) {
+  size_t N=_params.size();
+  Eigen::MatrixXd S(N,N);
+  Eigen::VectorXd F(N); 
+  Eigen::VectorXd dA(N);
+  for(size_t ka=0; ka<N; ka++) {  
+    size_t na=_params[ka].lmeas.nmeas();
+    for(size_t kb=ka; kb<N; kb++) {
+      size_t nb=_params[kb].lmeas.nmeas();
+      if(nb==0) {
+        std::cout << "ERROR: local measurements missing for parameter, "
+                  << _params[kb].name << std::endl;
+        exit(1);
+      }
+      if(na!=nb) {
+        std::cout << "ERROR: local measurements, " << _params[kb].name << " and "
+                  << _params[ka].name << " are different sizes." << std::endl;
+        exit(1);
+      }
+      double avea=_params[ka].lmeas.ave();
+      double aveb=_params[kb].lmeas.ave();
+      for(size_t i=0; i<na; i++) {
+        double ai=_params[ka].lmeas[i];
+        double bi=_params[ka].lmeas[i];
+        S(ka, kb)+=(ai-avea) * (bi-aveb);
+      }
+      S(ka,kb)=S(ka,kb)/(double)(_params[ka].lmeas.nmeas());
+      kb++;
+    }
+    for(size_t i=0; i<na; i++) F(ka)+=_el[i]*(_params[ka].lmeas[i] - _params[ka].lmeas.ave());
+    F(ka)=-2*F(ka)/(double)na;
+    ka++;
+  }
+  // preconditioning
+  Eigen::MatrixXd S_pc(N,N);
+  Eigen::VectorXd F_pc(N); 
+  for(size_t ka=0; ka<N; ka++) {
+    F_pc(ka)=F(ka)/std::sqrt(S(ka,ka));
+    for(size_t kb=0; kb<N; kb++) {
+      S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
+    }
+  }
+  F=df*F;
+  dA = S_pc.inverse()*F_pc;
+  for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k); 
 }
 
 size_t HeisenbergChainSimulator::_flipspin() {
@@ -123,33 +176,66 @@ double HeisenbergChainSimulator::_isingenergy() {
 }
 
 void HeisenbergChainSimulator::optimize
-(const size_t& vsteps, const size_t& equil, const size_t& simul) {
-  std::cout << "here" << std::endl;
-  _equilenergy.open("equilenergy.dat");
-  for(size_t varstep=0; varstep<vsteps; varstep++) {
+(const size_t& vsteps, const size_t& equil, const size_t& simul, 
+ const double& df) {
+
+  // open file for variational parameters
+  std::ofstream var_params;
+  std::string fvar_params="var_params.dat";
+  var_params.open(fvar_params);
+  for(auto it=_params.begin(); it!=_params.end(); it++) 
+    var_params << std::setw(10) << std::left << it->name;
+  var_params << '\n';
+  for(auto it=_params.begin(); it!=_params.end(); it++) 
+    var_params << std::setw(10) << std::left << it->val;
+  var_params << '\n';
+
+  for(size_t vstep=0; vstep<vsteps; vstep++) {
+    // open file for local observables
+    std::ofstream measvals;
+    std::string fmeasvals="measvals"+std::to_string(vstep)+".dat";
+    measvals.open(fmeasvals);  
     // first equilibrate this particular set
     for(size_t i=0; i<equil; i++) _sweep();
-    for(size_t i=0; i<simul; i++) {
+    std::cout << "equilibration " << vstep << " done." << std::endl;
+    // sample current wavefunction
+    for(size_t i=0; i<simul; i++) { 
       _sweep();
-      _el.push(_isingenergy());
+      double e=_isingenergy();
+      _el.push(e);
+      measvals << e << '\n';
       // Calculate O_k(x) for each variational parameter
-      for(auto it=params.begin(); it!=params.end(); it++) {
+      for(auto it=_params.begin(); it!=_params.end(); it++) {
         Eigen::MatrixXd redMat(_size, 2*_size); // N_e X 2L matrix
-        Eigen::MatrixXd okmat;
+        Eigen::MatrixXd okmat; // operator to measure
         for(size_t l=0; l<_size; l++)
         for(size_t r=0; r<2*_size; r++) {
           auto itstart=_operslist.begin();
           auto itend=_operslist.end();
-          size_t lpos=std::distance(itstart, std::find(itstart, itend, l));
+          size_t lpos=std::distance(itstart, std::find(itstart, itend, l+1));
           redMat(l,r) = it->mmat(lpos, r);  
         }
         // compute actual local value
         okmat=redMat*_gmat;
-        it->localvals.push(okmat.trace());
+        // add measurement to local values for this operator
+        it->lmeas.push(okmat.trace());
       }
-    } 
+    }
+    measvals.close();
+    measvals.clear();
+    // need to actually adjust variational energies now. First construct matrix
+    // S_kk' and force vector f_k 
+    _updateparams(df);
+    // update variational parameters
+    std::cout << "outputing new variational parameters" << std::endl;
+    for(auto it=_params.begin(); it!=_params.end(); it++) 
+      var_params << std::setw(10) << std::left << it->val; 
+    var_params << '\n';
+    std::cout << "reinitialzing auxiliary Hamiltonian" << std::endl;
+    _auxham.init(_params);
   }
-  _equilenergy.close();
+  var_params.close();
+  var_params.clear();
 }
 
 void HeisenbergChainSimulator::print_spinstate() {
