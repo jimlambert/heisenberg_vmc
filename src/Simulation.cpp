@@ -179,7 +179,7 @@ void HeisenbergChainSimulator::optimize
 (const size_t& vsteps, const size_t& equil, const size_t& simul, 
  const double& df) {
 
-  // open file for variational parameters
+  // open file for variational parameters, prepare header
   std::ofstream var_params;
   std::string fvar_params="var_params.dat";
   var_params.open(fvar_params);
