@@ -120,37 +120,40 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
   for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k); 
 }
 
-size_t HeisenbergChainSimulator::_flipspin() {
-  double rnum=_rnum(_mteng);
-  int rpos=(*_rpos)(_mteng);
-  size_t exipos;
-  size_t exnpos;
+size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
+  size_t iexpos; // initial position in extended space
+  size_t fexpos; // final position in extended space
   size_t lindex; // index of position in W array
-  int ds;
+  int ds; // change in spin direction
+  // determine initial and final positions on extended lattice
   if(_spinstate[rpos]==1){
-    exipos=rpos;
-    exnpos=exipos+_size;
+    iexpos=rpos;
+    fexpos=iexpos+_size;
     ds=-2;
   }
   else{
-    exipos=rpos+_size;
-    exnpos=exipos-_size;
+    iexpos=rpos+_size;
+    fexpos=iexpos-_size;
     ds=2;
   }
-  lindex=_operslist[exipos]-1;
-  double amp=abs(_gmat(exnpos, lindex));
+  // determine position of associated creation operator
+  lindex=_operslist[iexpos]-1;
+  double amp=abs(_gmat(fexpos, lindex)); // extract Green's function
   // accept flip according to green function
+  double rnum=_rnum(_mteng);
   if(rnum<amp*amp){
-    _operslist[exnpos]=_operslist[exipos];
-    _operslist[exipos]=0;
+    // update spin state and extended state
+    _operslist[fexpos]=_operslist[iexpos];
+    _operslist[iexpos]=0;
     _spinstate[rpos]+=ds;
+    // update green's function matrix
     Eigen::VectorXd a(2*_size);
     Eigen::VectorXd b(_size);
     for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
     for(size_t i=0; i<_size; i++) {
       double d=0;
       if(i==lindex) d=1;
-      b(i)= -1.0*(_gmat(exnpos, i) - d)/_gmat(exnpos, lindex);
+      b(i)= -1.0*(_gmat(fexpos, i) - d)/_gmat(fexpos, lindex);
     }
     _gmat=_gmat+a*b.transpose();
     return 1;
@@ -159,10 +162,12 @@ size_t HeisenbergChainSimulator::_flipspin() {
 }
 
 void HeisenbergChainSimulator::_sweep() {
-  size_t counter=0;
   // flip until N electron moves have occured.
   // while(counter<_size) counter+=_flipspin();
-  for(size_t i=0; i<_size; i++) counter += _flipspin();
+  for(size_t i=0; i<_size; i++) {
+    int rpos=(*_rpos)(_mteng);
+    size_t n=_flipspin(rpos);
+  } 
   _reinitgmat();
 }
 

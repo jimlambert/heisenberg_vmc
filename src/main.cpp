@@ -10,7 +10,7 @@
 using namespace std;
 
 int main() {
-  size_t L=4;
+  size_t L=2;
   size_t equil=100000;
   size_t simul=100000;
   size_t vstep=1;
@@ -24,7 +24,15 @@ int main() {
   params.push_back(nnhopp);
   params.push_back(nnpair);
   VMC::HeisChainSim simulator(L, params);
-  simulator.optimize(vstep, equil, simul, df);
+  simulator.print_spinstate();
+  simulator.print_operslist();
+  simulator.print_gmat();
+  simulator._flipspin(0);
+  cout << "------" << endl;
+  simulator.print_spinstate();
+  simulator.print_operslist();
+  simulator.print_gmat();
+  //simulator.optimize(vstep, equil, simul, df);
  
   return 0;
 }

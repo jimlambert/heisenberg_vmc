@@ -33,7 +33,6 @@ class HeisenbergChainSimulator {
     void _genstate();   // generate a random state
     void _reinitgmat(); // reinitialize _gmat every sweep
     void _updateparams(const double&); 
-    size_t _flipspin(); // single spin flip operation
     double _isingenergy();
   public:
     HeisenbergChainSimulator(const size_t&, ParamList_t&);
@@ -42,8 +41,10 @@ class HeisenbergChainSimulator {
     // and the size of each variational step.
     void optimize(const size_t&, const size_t&, const size_t&, const double&);
     void _sweep();
+    size_t _flipspin(const size_t&); // single spin flip operation
     void print_spinstate();
     void print_operslist();
+    void print_gmat(){std::cout << _gmat << std::endl;}
 };
 
 }
