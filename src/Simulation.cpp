@@ -39,7 +39,6 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
     }
   } while(projmat.determinant()==0);
   _gmat = redmat*projmat.inverse();
-  _auxham.setopers(_params);
 }
 
 void HeisenbergChainSimulator::_genstate() {
@@ -78,6 +77,7 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
   Eigen::MatrixXd S(N,N);
   Eigen::VectorXd F(N); 
   Eigen::VectorXd dA(N);
+  S = Eigen::MatrixXd::Zero(N, N);
   for(size_t ka=0; ka<N; ka++) {  
     size_t na=_params[ka].lmeas.nmeas();
     for(size_t kb=ka; kb<N; kb++) {
@@ -100,11 +100,10 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
         S(ka, kb)+=(ai-avea) * (bi-aveb);
       }
       S(ka,kb)=S(ka,kb)/(double)(_params[ka].lmeas.nmeas());
-      kb++;
+      S(kb,ka)=S(ka,kb);
     }
     for(size_t i=0; i<na; i++) F(ka)+=_el[i]*(_params[ka].lmeas[i] - _params[ka].lmeas.ave());
     F(ka)=-2*F(ka)/(double)na;
-    ka++;
   }
   // preconditioning
   Eigen::MatrixXd S_pc(N,N);
@@ -117,6 +116,7 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
   }
   F=df*F;
   dA = S_pc.inverse()*F_pc;
+  std::cout << S_pc.inverse() << std::endl;
   for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k); 
 }
 
@@ -138,7 +138,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   }
   // determine position of associated creation operator
   lindex=_operslist[iexpos]-1;
-  double amp=abs(_gmat(fexpos, lindex)); // extract Green's function
+  double amp=fabs(_gmat(fexpos, lindex)); // extract Green's function
   // accept flip according to green function
   double rnum=_rnum(_mteng);
   if(rnum<amp*amp){
@@ -184,7 +184,7 @@ void HeisenbergChainSimulator::optimize
 (const size_t& vsteps, const size_t& equil, const size_t& simul, 
  const double& df) {
 
-  // open file for variational parameters
+  // open file for variational parameters, prepare header
   std::ofstream var_params;
   std::string fvar_params="var_params.dat";
   var_params.open(fvar_params);
@@ -201,13 +201,18 @@ void HeisenbergChainSimulator::optimize
     std::string fmeasvals="measvals"+std::to_string(vstep)+".dat";
     measvals.open(fmeasvals);  
     // first equilibrate this particular set
-    for(size_t i=0; i<equil; i++) _sweep();
+    for(size_t i=0; i<equil; i++){
+      _sweep();
+      print_spinstate();
+    }
     std::cout << "equilibration " << vstep << " done." << std::endl;
     // sample current wavefunction
     for(size_t i=0; i<simul; i++) { 
+      // start with a sweep
       _sweep();
+      print_spinstate();
       double e=_isingenergy();
-      _el.push(e);
+      _el.push(e); // record energy
       measvals << e << '\n';
       // Calculate O_k(x) for each variational parameter
       for(auto it=_params.begin(); it!=_params.end(); it++) {
