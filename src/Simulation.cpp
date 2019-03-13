@@ -123,26 +123,26 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
 size_t HeisenbergChainSimulator::_flipspin() {
   double rnum=_rnum(_mteng);
   int rpos=(*_rpos)(_mteng);
-  size_t exipos;
-  size_t exnpos;
+  size_t iexpos;
+  size_t nexpos;
   size_t lindex; // index of position in W array
   int ds;
   if(_spinstate[rpos]==1){
-    exipos=rpos;
-    exnpos=exipos+_size;
+    iexpos=rpos;
+    nexpos=iexpos+_size;
     ds=-2;
   }
   else{
-    exipos=rpos+_size;
-    exnpos=exipos-_size;
+    iexpos=rpos+_size;
+    nexpos=iexpos-_size;
     ds=2;
   }
-  lindex=_operslist[exipos]-1;
-  double amp=abs(_gmat(exnpos, lindex));
+  lindex=_operslist[iexpos]-1;
+  double amp=abs(_gmat(nexpos, lindex));
   // accept flip according to green function
   if(rnum<amp*amp){
-    _operslist[exnpos]=_operslist[exipos];
-    _operslist[exipos]=0;
+    _operslist[nexpos]=_operslist[iexpos];
+    _operslist[iexpos]=0;
     _spinstate[rpos]+=ds;
     Eigen::VectorXd a(2*_size);
     Eigen::VectorXd b(_size);
@@ -150,7 +150,7 @@ size_t HeisenbergChainSimulator::_flipspin() {
     for(size_t i=0; i<_size; i++) {
       double d=0;
       if(i==lindex) d=1;
-      b(i)= -1.0*(_gmat(exnpos, i) - d)/_gmat(exnpos, lindex);
+      b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
     }
     _gmat=_gmat+a*b.transpose();
     return 1;
@@ -158,6 +158,52 @@ size_t HeisenbergChainSimulator::_flipspin() {
   return 0;
 }
 
+size_t HeisenbergChainSimulator::_flipspin(const size_t rpos) {
+  size_t iexpos; // initial position in extended basis
+  size_t nexpos; // new position in extended basis
+  size_t lindex; // index of position in W array
+  int ds; // change in spin
+  // -----------------------------------
+  // determine new location of spin in extended state
+  // -----------------------------------
+  if(_spinstate[rpos]==1){
+    iexpos=rpos;
+    nexpos=iexpos+_size;
+    ds=-2;
+  }
+  else{
+    iexpos=rpos+_size;
+    nexpos=iexpos-_size;
+    ds=2;
+  }
+  // ----------------------------------
+  // accept flip according to Green's function
+  // ----------------------------------
+  lindex=_operslist[iexpos]-1;
+  double amp=abs(_gmat(nexpos, lindex));
+  if(rnum<amp*amp){
+    // -----------------------
+    // swap operator positions and update spin state
+    // -----------------------
+    _operslist[nexpos]=_operslist[iexpos]; 
+    _operslist[iexpos]=0;
+    _spinstate[rpos]+=ds;
+    // -----------------------
+    // prepare vectors to update Green's function matrix
+    // -----------------------
+    Eigen::VectorXd a(2*_size);
+    Eigen::VectorXd b(_size);
+    for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
+    for(size_t i=0; i<_size; i++) {
+      double d=0;
+      if(i==lindex) d=1;
+      b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
+    }
+    _gmat=_gmat+a*b.transpose(); // update Green's function here
+    return 1;
+  }
+  return 0;
+}
 void HeisenbergChainSimulator::_sweep() {
   size_t counter=0;
   // flip until N electron moves have occured.

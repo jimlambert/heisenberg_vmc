@@ -2,6 +2,7 @@
 #define SIMULATION_H
 
 #include <vector>
+#include <string>
 #include <Eigen/Dense>
 #include <random>
 #include <fstream>
@@ -40,6 +41,7 @@ class HeisenbergChainSimulator {
     // equilibrations per step, the number of configurations to sample per step,
     // and the size of each variational step.
     size_t _flipspin(); // single spin flip operation
+    size_t _flipspin(const size_t&); // single spin flip operation
     void optimize(const size_t&, const size_t&, const size_t&, const double&);
     void _sweep();
     void print_spinstate();
