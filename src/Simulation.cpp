@@ -40,7 +40,7 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
         projmat(i, j) = redmat(pos, j);
       }
     }
-  } while(projmat.determinant()==0);
+  } while(abs(projmat.determinant())==0);
   _gmat = redmat*projmat.inverse();
 }
 
@@ -78,7 +78,7 @@ void HeisenbergChainSimulator::_reinitgmat() {
 void HeisenbergChainSimulator::_updateparams(const double& df) {
   size_t N=_params.size();
   Eigen::MatrixXd S(N,N);
-  Eigen::VectorXcd F(N); 
+  Eigen::VectorXd F(N); 
   Eigen::VectorXd dA(N);
   S = Eigen::MatrixXd::Zero(N, N);
   for(size_t ka=0; ka<N; ka++) {  
@@ -106,12 +106,13 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
       S(ka,kb)=(total/(double)(_params[ka].lmeas.nmeas())).real();
       S(kb,ka)=S(ka,kb);
     }
-    for(size_t i=0; i<na; i++) F(ka)+=_el[i]*(_params[ka].lmeas[i] - _params[ka].lmeas.ave());
-    F(ka)=-2*F(ka).real()/(double)na;
+    std::complex<double> total=0.0;
+    for(size_t i=0; i<na; i++) total+=_el[i]*(_params[ka].lmeas[i] - _params[ka].lmeas.ave());
+    F(ka)=-2*total.real()/(double)na;
   }
   // preconditioning
-  Eigen::MatrixXcd S_pc(N,N);
-  Eigen::VectorXcd F_pc(N); 
+  Eigen::MatrixXd S_pc(N,N);
+  Eigen::VectorXd F_pc(N); 
   for(size_t ka=0; ka<N; ka++) {
     F_pc(ka)=F(ka)/std::sqrt(S(ka,ka));
     for(size_t kb=0; kb<N; kb++) {
