@@ -29,16 +29,18 @@ namespace VMC{
 class BCSChainHamiltonian{
   private:
     size_t _L;  
+    // not actually Hamiltonian, but tunneling matrix T.
     Eigen::MatrixXd _bcsmatrix;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> _solver;   
   public:
+    // accepts size of auxiliary Hamiltonian and parameter list.
     BCSChainHamiltonian(const size_t&, ParamList_t&);
     void solve(){_solver.compute(_bcsmatrix);} 
     void init(ParamList_t&); 
     void setopers(ParamList_t&); 
     void print_matrix(){std::cout << _bcsmatrix << std::endl;} 
-    Eigen::MatrixXd get_reduced_matrix(const size_t&); 
-    Eigen::MatrixXd get_eigenvecs(){return _solver.eigenvectors();}
+    Eigen::MatrixXcd get_reduced_matrix(const size_t&); 
+    Eigen::MatrixXcd get_eigenvecs(){return _solver.eigenvectors();}
     Eigen::MatrixXd get_eigenvals(){return _solver.eigenvalues();}
 };
 }

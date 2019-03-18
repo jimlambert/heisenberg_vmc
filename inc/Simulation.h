@@ -2,6 +2,7 @@
 #define SIMULATION_H
 
 #include <vector>
+#include <string>
 #include <Eigen/Dense>
 #include <random>
 #include <fstream>
@@ -26,8 +27,8 @@ class HeisenbergChainSimulator {
     std::vector<int> _spinstate; // spin state
     std::vector<size_t> _operslist; // positions of creation operators
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
-    Eigen::MatrixXd _gmat; // Green's function matrix
-    LocalMeasurement _el{1000}; // local energy
+    Eigen::MatrixXcd _gmat; // Green's function matrix
+    LocalMeasurement<double> _el{1000}; // local energy
 
     // help functions
     void _genstate();   // generate a random state
@@ -40,9 +41,9 @@ class HeisenbergChainSimulator {
     // equilibrations per step, the number of configurations to sample per step,
     // and the size of each variational step.
     size_t _flipspin(); // single spin flip operation
+    size_t _flipspin(const size_t&); // single spin flip operation
     void optimize(const size_t&, const size_t&, const size_t&, const double&);
     void _sweep();
-    size_t _flipspin(const size_t&); // single spin flip operation
     void print_spinstate();
     void print_operslist();
     void print_gmat(){std::cout << _gmat << std::endl;}
