@@ -23,6 +23,13 @@ class LocalMeasurement {
       _total += val;
       _nmeas += 1;
     }
+    void clear() { 
+      _total=0.0;
+      _bintotal=0.0;
+      _nmeas=0;
+      _nbins=0;
+      _vals.clear();
+    }
     size_t nbins() {return _nbins;}
     size_t nmeas() {return _nmeas;}
     //double ave() {return (double)_bintotal/(double)_nbins;}

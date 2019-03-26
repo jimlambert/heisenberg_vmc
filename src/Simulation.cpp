@@ -15,7 +15,6 @@
 namespace VMC {
 namespace SIMULATION {
 
-
 #define COLUMN_WITH 20
 
 HeisenbergChainSimulator::HeisenbergChainSimulator
@@ -109,8 +108,10 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
     std::complex<double> total=0.0;
     for(size_t i=0; i<na; i++) total+=_el[i]*(_params[ka].lmeas[i] - _params[ka].lmeas.ave());
     F(ka)=-2*total.real()/(double)na;
-  }
+  } 
+  // ----------------------
   // preconditioning
+  // ----------------------
   Eigen::MatrixXd S_pc(N,N);
   Eigen::VectorXd F_pc(N); 
   for(size_t ka=0; ka<N; ka++) {
@@ -119,9 +120,11 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
       S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
     }
   }
-  F=df*F;
+  F_pc=df*F_pc;
   dA = S_pc.inverse()*F_pc;
-  for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k); 
+  for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k);
+  //dA = S.inverse()*F*df; 
+  //for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k);
 }
 
 size_t HeisenbergChainSimulator::_flipspin() {
@@ -206,7 +209,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
     for(size_t i=0; i<_size; i++) {
       double d=0;
-      if(i==lindex) d=1;
+      if(i==lindex) d=1; // implementing the delta function
       b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
     }
     _gmat=_gmat+a*b.transpose(); // update Green's function here
@@ -235,7 +238,7 @@ double HeisenbergChainSimulator::_isingenergy() {
 
 void HeisenbergChainSimulator::optimize
 (const size_t& vsteps, const size_t& equil, const size_t& simul, 
- const double& df) {
+ const double& df, const std::string ofname) {
 
   // ------------------------------
   // open file for variational parameters, prepare header
@@ -256,7 +259,7 @@ void HeisenbergChainSimulator::optimize
   for(size_t vstep=0; vstep<vsteps; vstep++) {
     // open file for local observables
     std::ofstream measvals;
-    std::string fmeasvals="optvals"+std::to_string(vstep)+".dat";
+    std::string fmeasvals=ofname+std::to_string(vstep)+".dat";
     measvals.open(fmeasvals);  
     measvals << std::setw(COLUMN_WITH) << std::left << "e_L";
     for(auto it=_params.begin(); it!=_params.end(); it++) {
@@ -268,6 +271,10 @@ void HeisenbergChainSimulator::optimize
       _sweep();
     }
     std::cout << "equilibration " << vstep << " done." << std::endl;
+    
+    for(auto it=_params.begin(); it!=_params.end(); it++) {
+      it->lmeas.clear();
+    }
     // -------------------
     // Loop for sampling wavefunction
     // -------------------

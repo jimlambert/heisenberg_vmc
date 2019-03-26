@@ -42,7 +42,8 @@ class HeisenbergChainSimulator {
     // and the size of each variational step.
     size_t _flipspin(); // single spin flip operation
     size_t _flipspin(const size_t&); // single spin flip operation
-    void optimize(const size_t&, const size_t&, const size_t&, const double&);
+    void optimize(const size_t&, const size_t&, const size_t&, 
+                  const double&, const std::string);
     void _sweep();
     void print_spinstate();
     void print_operslist();

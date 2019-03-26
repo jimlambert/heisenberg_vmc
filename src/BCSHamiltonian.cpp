@@ -56,7 +56,7 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
     UVU = U.adjoint()*(it->vmat)*U;
     for(size_t i=0; i<_L; i++)
     for(size_t j=0; j<_L; j++)
-      if((i>((_L/2)-1))&&(j<=((_L/2)-1))) Q(i,j)=UVU(i,j)/(e(i)-e(j));
+      if((i>((_L/2)-1))&&(j<=((_L/2)-1))) Q(i,j)=UVU(i,j)/(e(j)-e(i));
     //it->mmat=U.adjoint()*Q*(U);
     it->mmat=U*Q*(U.adjoint());
     //std::cout << it->name << std::endl;
@@ -74,10 +74,10 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
   } 
 }
 
-Eigen::MatrixXd BCSChainHamiltonian::get_reduced_matrix
+Eigen::MatrixXcd BCSChainHamiltonian::get_reduced_matrix
 (const size_t& nele) {
-  Eigen::MatrixXd _evecs = get_eigenvecs();
-  Eigen::MatrixXd redmat(_L, nele);
+  Eigen::MatrixXcd _evecs = get_eigenvecs();
+  Eigen::MatrixXcd redmat(_L, nele);
   for(size_t i=0; i<_L; i++)
   for(size_t j=0; j<nele; j++)
     redmat(i, j)=_evecs(i, j);

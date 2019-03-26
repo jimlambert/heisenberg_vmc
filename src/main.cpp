@@ -13,14 +13,14 @@ using namespace std;
 int main(int argc, char* argv[]) {
   
   size_t L=2;
-  size_t equil=1000;
+  size_t equil=10000;
   size_t simul=100000;
   size_t binsize=100;
-  size_t vsteps = 10;
-  double df = 0.01;
-  double p1=1.0;
-  double p2=2.0;
-  double p3=3.0;
+  size_t vsteps = 200;
+  double df = 0.001;
+  double p1=0.5;
+  double p2=0.5;
+  double p3=0.5;
   VMC::ParamList_t params;
   VMC::BCSVarParam onsite(p1, 0, VMC::Onsite, 2*L, binsize, "onsite");
   VMC::BCSVarParam nnhop(p2, 1, VMC::Hopping, 2*L, binsize, "nnhop");
@@ -30,7 +30,6 @@ int main(int argc, char* argv[]) {
   params.push_back(nnhop);
   params.push_back(ospair);
   params.push_back(nnpair); 
-  
   //VMC::BCSChainHamiltonian testauxham(2*L, params);
   //cout << testauxham.get_eigenvals() << endl;
   //cout << testauxham.get_eigenvecs() << endl;
@@ -44,6 +43,6 @@ int main(int argc, char* argv[]) {
   //} 
   
   VMC::HeisChainSim simulator(L, params);
-  simulator.optimize(vsteps, equil, simul, df); 
+  simulator.optimize(vsteps, equil, simul, df, "n2_optvals"); 
   return 0;
 }

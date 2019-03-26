@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <iostream>
 #include "VarParam.h"
 
 namespace VMC {
