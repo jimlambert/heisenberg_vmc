@@ -81,9 +81,9 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
   Eigen::VectorXd dA(N);
   S = Eigen::MatrixXd::Zero(N, N);
   for(size_t ka=0; ka<N; ka++) {  
-    size_t na=_params[ka].lmeas.nmeas();
+    size_t na=_params[ka].lmeas.nvals();
     for(size_t kb=ka; kb<N; kb++) {
-      size_t nb=_params[kb].lmeas.nmeas();
+      size_t nb=_params[kb].lmeas.nvals();
       if(nb==0) {
         std::cout << "ERROR: local measurements missing for parameter, "
                   << _params[kb].name << std::endl;
@@ -102,7 +102,7 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
         std::complex<double> bi=_params[kb].lmeas[i];
         total+=(ai-avea) * (bi-aveb);
       }
-      S(ka,kb)=(total/(double)(_params[ka].lmeas.nmeas())).real();
+      S(ka,kb)=(total/(double)(_params[ka].lmeas.nbins())).real();
       S(kb,ka)=S(ka,kb);
     }
     std::complex<double> total=0.0;
@@ -258,23 +258,24 @@ void HeisenbergChainSimulator::optimize
   // -----------------------------
   for(size_t vstep=0; vstep<vsteps; vstep++) {
     // open file for local observables
-    std::ofstream measvals;
-    std::string fmeasvals=ofname+std::to_string(vstep)+".dat";
-    measvals.open(fmeasvals);  
-    measvals << std::setw(COLUMN_WITH) << std::left << "e_L";
+    std::ofstream measfile;
+    std::string measfileName=ofname+std::to_string(vstep)+".dat";
+    measfile.open(measfileName);  
+    measfile << std::setw(COLUMN_WITH) << std::left << "e_L";
     for(auto it=_params.begin(); it!=_params.end(); it++) {
-      measvals << std::setw(COLUMN_WITH) << std::left << it->name; 
+      measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
     }
-    measvals << '\n'; 
+    measfile << '\n'; 
     // first equilibrate this particular set
     for(size_t i=0; i<equil; i++){
       _sweep();
     }
-    std::cout << "equilibration " << vstep << " done." << std::endl;
-    
+    std::cout << "equilibration " << vstep << " done." << std::endl;    
+    // clear any old measurements
     for(auto it=_params.begin(); it!=_params.end(); it++) {
       it->lmeas.clear();
     }
+    _el.clear();
     // -------------------
     // Loop for sampling wavefunction
     // -------------------
@@ -283,7 +284,7 @@ void HeisenbergChainSimulator::optimize
       _sweep();
       double e=_isingenergy();
       _el.push(e); // record energy
-      measvals << std::setw(COLUMN_WITH) << std::left <<  e;
+      //measfile << std::setw(COLUMN_WITH) << std::left <<  e;
       // -------------------------
       // Loop through O_k(x) for each variational parameter
       // -------------------------
@@ -301,17 +302,21 @@ void HeisenbergChainSimulator::optimize
         okmat=redMat*_gmat;
         // add measurement to local values for this operator
         std::complex<double> okval = okmat.trace();
-        measvals << std::setw(COLUMN_WITH) << std::left << okval;
-        it->lmeas.push(okmat.trace());
+        //measfile << std::setw(COLUMN_WITH) << std::left << okval;
+        it->lmeas.push(okval);
       }
-      measvals << '\n';
+      //measfile << '\n';
     }
-    measvals.close();
-    measvals.clear();
-    // need to actually adjust variational parameters now. First construct matrix
-    // S_kk' and force vector f_k 
-    _updateparams(df);
+    for(size_t i=0; i<_el.nbins(); i++) {
+      measfile << std::setw(COLUMN_WITH) << std::left << _el(i);
+      for(auto pit=_params.begin(); pit!=_params.end(); pit++) 
+        measfile << std::setw(COLUMN_WITH) << std::left << pit->lmeas(i);
+      measfile << '\n';
+    }
+    measfile.close();
+    measfile.clear();
     // update variational parameters
+    _updateparams(df);
     std::cout << "outputing new variational parameters" << std::endl;
     for(auto it=_params.begin(); it!=_params.end(); it++) 
       var_params << std::setw(COLUMN_WITH) << std::left << it->val; 
