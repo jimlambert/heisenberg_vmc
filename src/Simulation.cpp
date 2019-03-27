@@ -102,7 +102,7 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
         std::complex<double> bi=_params[kb].lmeas[i];
         total+=(ai-avea) * (bi-aveb);
       }
-      S(ka,kb)=(total/(double)(_params[ka].lmeas.nbins())).real();
+      S(ka,kb)=(total/(double)na).real();
       S(kb,ka)=S(ka,kb);
     }
     std::complex<double> total=0.0;
@@ -122,6 +122,8 @@ void HeisenbergChainSimulator::_updateparams(const double& df) {
   }
   F_pc=df*F_pc;
   dA = S_pc.inverse()*F_pc;
+  //std::cout << F << std::endl;
+  //dA = df*F;
   for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k);
   //dA = S.inverse()*F*df; 
   //for(size_t k=0; k<N; k++) _params[k].val+=dA[k]/S(k,k);
@@ -156,15 +158,25 @@ size_t HeisenbergChainSimulator::_flipspin() {
     _operslist[iexpos]=0;
     _spinstate[rpos]+=ds;
     // update green's function matrix
-    Eigen::VectorXcd a(2*_size);
-    Eigen::VectorXcd b(_size);
-    for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
-    for(size_t i=0; i<_size; i++) {
+    //Eigen::VectorXcd a(2*_size);
+    //Eigen::VectorXcd b(_size);
+    //for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
+    //for(size_t i=0; i<_size; i++) {
+    //  double d=0;
+    //  if(i==lindex) d=1;
+    //  b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
+    //}
+    //_gmat=_gmat+a*b.transpose();
+    Eigen::MatrixXcd newgmat(2*_size, _size);
+    for(size_t i=0; i<2*_size; i++)
+    for(size_t j=0; j<_size; j++) {
       double d=0;
       if(i==lindex) d=1;
-      b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
+      std::complex<double> den = _gmat(nexpos,lindex);
+      std::complex<double> num = _gmat(i,lindex);
+      newgmat(i,j)=_gmat(i,j)-(num/den)*(_gmat(nexpos,j)-d); 
     }
-    _gmat=_gmat+a*b.transpose();
+    _gmat=newgmat;
     return 1;
   }
   return 0;
@@ -204,15 +216,25 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     // -----------------------
     // prepare vectors to update Green's function matrix
     // -----------------------
-    Eigen::VectorXcd a(2*_size);
-    Eigen::VectorXcd b(_size);
-    for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
-    for(size_t i=0; i<_size; i++) {
+    //Eigen::VectorXcd a(2*_size);
+    //Eigen::VectorXcd b(_size);
+    //for(size_t i=0; i<2*_size; i++) a(i)=_gmat(i, lindex);
+    //for(size_t i=0; i<_size; i++) {
+    //  double d=0;
+    //  if(i==lindex) d=1; // implementing the delta function
+    //  b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
+    //}
+    //_gmat=_gmat+a*b.transpose(); // update Green's function here
+    Eigen::MatrixXcd newgmat(2*_size, _size);
+    for(size_t i=0; i<2*_size; i++)
+    for(size_t j=0; j<_size; j++) {
       double d=0;
-      if(i==lindex) d=1; // implementing the delta function
-      b(i)= -1.0*(_gmat(nexpos, i) - d)/_gmat(nexpos, lindex);
+      if(i==lindex) d=1;
+      std::complex<double> den = _gmat(nexpos,lindex);
+      std::complex<double> num = _gmat(i,lindex);
+      newgmat(i,j)=_gmat(i,j)-(num/den)*(_gmat(nexpos,j)-d); 
     }
-    _gmat=_gmat+a*b.transpose(); // update Green's function here
+    _gmat=newgmat;
     return 1;
   }
   return 0;
@@ -284,7 +306,6 @@ void HeisenbergChainSimulator::optimize
       _sweep();
       double e=_isingenergy();
       _el.push(e); // record energy
-      //measfile << std::setw(COLUMN_WITH) << std::left <<  e;
       // -------------------------
       // Loop through O_k(x) for each variational parameter
       // -------------------------
@@ -300,12 +321,9 @@ void HeisenbergChainSimulator::optimize
         }
         // compute actual local value
         okmat=redMat*_gmat;
-        // add measurement to local values for this operator
         std::complex<double> okval = okmat.trace();
-        //measfile << std::setw(COLUMN_WITH) << std::left << okval;
         it->lmeas.push(okval);
       }
-      //measfile << '\n';
     }
     for(size_t i=0; i<_el.nbins(); i++) {
       measfile << std::setw(COLUMN_WITH) << std::left << _el(i);

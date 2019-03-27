@@ -11,12 +11,12 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-
-  size_t L=2;
+  
+  size_t L=10;
   size_t equil=10000;
   size_t simul=100000;
   size_t binsize=100;
-  size_t vsteps = 100;
+  size_t vsteps = 300;
   double df = 0.001;
   double p1=0.5;
   double p2=0.5;
