@@ -249,13 +249,52 @@ void HeisenbergChainSimulator::_sweep() {
   _reinitgmat();
 }
 
-double HeisenbergChainSimulator::_isingenergy() {
-  double total=0;
+std::complex<double> HeisenbergChainSimulator::_isingenergy() {
+  std::complex<double> total=0.0;
   for(size_t i=0; i<_size; i++) {
     if(i<(_size-1)) total+=_spinstate[i]*_spinstate[i+1];
     else total+=_spinstate[0]*_spinstate[i];
   }
   return total;
+}
+
+std::complex<double> HeisenbergChainSimulator::_heisenergy() {
+  std::complex<double> total=0.0;
+  for(size_t i=0; i<_size; i++) {
+    size_t j;
+    if(i<(_size-1)) j = i+1;
+    else j=0;
+    total += 0.25*_spinstate[i]*_spinstate[j];
+    if(_spinstate[i]==_spinstate[j]) continue;
+    else if(_spinstate[i]==-1) {
+      Eigen::MatrixXcd wmat(2,2);
+      size_t iexpos1=i;   
+      size_t iexpos2=j+_size;   
+      size_t nexpos1=i+_size;   
+      size_t nexpos2=j;   
+      size_t lindex1=_operslist[iexpos1]-1;
+      size_t lindex2=_operslist[iexpos2]-1;
+      wmat(0,0)=_gmat(nexpos1, lindex1);
+      wmat(1,0)=_gmat(nexpos2, lindex1);
+      wmat(0,1)=_gmat(nexpos1, lindex2);
+      wmat(1,1)=_gmat(nexpos2, lindex2);
+      total += 0.5 * wmat.determinant();
+    }
+    else {
+      Eigen::MatrixXcd wmat(2,2);
+      size_t iexpos1=i;   
+      size_t iexpos2=j+_size;   
+      size_t nexpos1=i+_size;   
+      size_t nexpos2=j;   
+      size_t lindex1=_operslist[iexpos1]-1;
+      size_t lindex2=_operslist[iexpos2]-1;
+      wmat(0,0)=_gmat(nexpos1, lindex1);
+      wmat(1,0)=_gmat(nexpos2, lindex1);
+      wmat(0,1)=_gmat(nexpos1, lindex2);
+      wmat(1,1)=_gmat(nexpos2, lindex2);
+      total += 0.5 * wmat.determinant();
+    }
+  }
 }
 
 void HeisenbergChainSimulator::optimize
@@ -283,6 +322,7 @@ void HeisenbergChainSimulator::optimize
     std::ofstream measfile;
     std::string measfileName=ofname+std::to_string(vstep)+".dat";
     measfile.open(measfileName);  
+    measfile << vstep << '\n';
     measfile << std::setw(COLUMN_WITH) << std::left << "e_L";
     for(auto it=_params.begin(); it!=_params.end(); it++) {
       measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
@@ -304,7 +344,8 @@ void HeisenbergChainSimulator::optimize
     for(size_t i=0; i<simul; i++) { 
       // start with a sweep
       _sweep();
-      double e=_isingenergy();
+      //std::complex<double> e=_isingenergy();
+      std::complex<double> e=_heisenergy();
       _el.push(e); // record energy
       // -------------------------
       // Loop through O_k(x) for each variational parameter

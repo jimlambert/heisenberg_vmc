@@ -1,5 +1,7 @@
 import numpy as np
-from statistics import mean
+import glob
+import uncertainties
+from statistics import mean, stdev
 
 def ReshapeData(array):
     reshapedData = []
@@ -19,19 +21,86 @@ def ReadEnergies(energyFile):
     return np.array(lines)
 
 
-def ReadMeasurements(measFile):
+def ReadMeasurements(measFile, varFileType):
     head = []
-    data = []
+    datArr = []
     with open(measFile, 'r') as mF:
-        head = mF.readline().strip().split()
-        head = [str(x) for x in head]
-        next(mF)
-        for line in mF:
-            dline = line.strip().split()
-            dline[0] = float(dline[0])
-            data.append(dline)
-    return head, data
+        # if this data was extracted during a variational step, its step
+        # identifier is the first number in the file        
+        if varFileType:
+            vstep = mF.readline().strip().split()
+            vstep = int(vstep[0])
+            datArr.append(vstep)
+            # read file names
+            head = mF.readline().strip().split()
+            head = [str(x) for x in head]
+            next(mF)
+            values = []
+            for line in mF:
+                rawLine=line.strip().split()
+                datLine=[]
+                for ele in rawLine:
+                    ele=ele.strip("(").strip(")").split(",")
+                    if len(ele)==1:
+                        datLine.append(float(ele[0]))
+                    else:
+                        datLine.append(float(ele[0])+float(ele[1])*1.0j) 
+                values.append(datLine)
+            datArr.append(values)
+        else:
+            # read file names
+            head = mF.readline().strip().split()
+            head = [str(x) for x in head]
+            next(mF)
+            for line in mF:
+                rawLine=line.strip().split()
+                datLine=[]
+                for ele in rawLine:
+                    ele=ele.strip("(").strip(")").split(",")
+                    if len(ele)==1:
+                        datLine.append(float(ele[0]))
+                    else:
+                        datLine.append(float(ele[0])+float(ele[1])*1.0j) 
+                datArr.append(datLine)
+    return head, datArr
 
+
+def ProcessDataFiles(namePattern, varFileType):
+    dataFiles = glob.glob(namePattern)
+    varSteps = []
+    header = []
+    obsAve = []
+    obsErr = []
+    if varFileType:
+        for dataFile in dataFiles:
+            cHeader, cData = ReadMeasurements(dataFile, varFileType)
+            if not header:
+                header=cHeader
+            cData[1] = ReshapeData(cData[1])
+            varSteps.append(cData[0])
+            vals = []
+            errs = []
+            for data in cData[1]:
+                vals.append(mean(data.real))
+                errs.append(stdev(data.real))
+            obsAve.append(vals)
+            obsErr.append(errs)
+    else:
+        for dataFile in dataFiles:
+            cHeader, cData = ReadMeasurements(dataFile, varFileType)
+            if not header:
+                header=cHeader
+            cData = ReshapeData(cData)
+            vals = []
+            errs = []
+            for data in cData:
+                vals.append(mean(data.real))
+                errs.append(stdev(data.real))
+            obsAve.append(vals)
+            obsErr.append(errs)
+    obsAve = ReshapeData([x for _,x in sorted(zip(varSteps, obsAve))])
+    obsErr = ReshapeData([x for _,x in sorted(zip(varSteps, obsErr))])
+    return header, obsAve, obsErr 
 
 def ReadParamsDat(varparFile):
     head = []

@@ -24,9 +24,9 @@
 #include <iostream>
 #include "VarParam.h"
 
-namespace VMC{
+namespace VMC {
 
-class BCSChainHamiltonian{
+class BCSChainHamiltonian {
   private:
     size_t _L;  
     // not actually Hamiltonian, but tunneling matrix T.

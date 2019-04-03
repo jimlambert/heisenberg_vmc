@@ -24,17 +24,18 @@ class HeisenbergChainSimulator {
     // simulation parameters
     size_t _size;
     ParamList_t _params; // variational parameter list
-    std::vector<int> _spinstate; // spin state
+    std::vector<int> _spinstate; // spin state in the S_z basis
     std::vector<size_t> _operslist; // positions of creation operators
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
     Eigen::MatrixXcd _gmat; // Green's function matrix
-    LocalMeasurement<double> _el{1000}; // local energy
+    LocalMeasurement<std::complex<double> > _el{1000}; // local energy
 
     // help functions
     void _genstate();   // generate a random state
     void _reinitgmat(); // reinitialize _gmat every sweep
     void _updateparams(const double&); 
-    double _isingenergy();
+    std::complex<double> _isingenergy();
+    std::complex<double> _heisenergy();
   public:
     HeisenbergChainSimulator(const size_t&, ParamList_t&);
     // optimize function accepts the number of variatonal steps, the number of
