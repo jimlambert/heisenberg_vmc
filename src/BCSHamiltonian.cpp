@@ -10,7 +10,7 @@ BCSChainHamiltonian::BCSChainHamiltonian
 (const size_t& L, ParamList_t& params) : _L(L) {init(params);}
 
 void BCSChainHamiltonian::init(ParamList_t& params) {
-  _bcsmatrix = Eigen::MatrixXd::Zero(_L, _L);
+  _bcsmatrix = Eigen::MatrixXcd::Zero(_L, _L);
   for(auto it=params.begin(); it!=params.end(); it++)
   switch(it->type) { 
     case Onsite:
@@ -34,7 +34,7 @@ void BCSChainHamiltonian::init(ParamList_t& params) {
     case Pairing:
       for(size_t i=0; i<_L/2; i++) {
         _bcsmatrix(i, (i+it->space)%(_L/2)+_L/2)+=it->val;
-        _bcsmatrix((i+it->space)%(_L/2)+_L/2, i)+=it->val;
+        _bcsmatrix((i+it->space)%(_L/2)+_L/2, i)+=std::conj(it->val);
       }
       break;
   }

@@ -30,8 +30,8 @@ class BCSChainHamiltonian {
   private:
     size_t _L;  
     // not actually Hamiltonian, but tunneling matrix T.
-    Eigen::MatrixXd _bcsmatrix;
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> _solver;   
+    Eigen::MatrixXcd _bcsmatrix;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> _solver;   
   public:
     // accepts size of auxiliary Hamiltonian and parameter list.
     BCSChainHamiltonian(const size_t&, ParamList_t&);
@@ -39,6 +39,7 @@ class BCSChainHamiltonian {
     void init(ParamList_t&); 
     void setopers(ParamList_t&); 
     void print_matrix(){std::cout << _bcsmatrix << std::endl;} 
+    Eigen::MatrixXcd get_hamiltonian(){return _bcsmatrix;}
     Eigen::MatrixXcd get_reduced_matrix(const size_t&); 
     Eigen::MatrixXcd get_eigenvecs(){return _solver.eigenvectors();}
     Eigen::MatrixXd get_eigenvals(){return _solver.eigenvalues();}

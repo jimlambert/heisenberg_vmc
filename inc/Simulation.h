@@ -28,7 +28,7 @@ class HeisenbergChainSimulator {
     std::vector<size_t> _operslist; // positions of creation operators
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
     Eigen::MatrixXcd _gmat; // Green's function matrix
-    LocalMeasurement<std::complex<double> > _el{1000}; // local energy
+    LocalMeasurement<std::complex<double> > _el; // local energy
 
     // help functions
     void _genstate();   // generate a random state
@@ -37,7 +37,7 @@ class HeisenbergChainSimulator {
     std::complex<double> _isingenergy();
     std::complex<double> _heisenergy();
   public:
-    HeisenbergChainSimulator(const size_t&, ParamList_t&);
+    HeisenbergChainSimulator(const size_t&, const size_t&, ParamList_t&);
     // optimize function accepts the number of variatonal steps, the number of
     // equilibrations per step, the number of configurations to sample per step,
     // and the size of each variational step.
