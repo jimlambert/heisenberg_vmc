@@ -1,7 +1,7 @@
 import numpy as np
 import glob
 import uncertainties
-from statistics import mean, stdev
+from statistics import mean, stdev, variance
 
 def ReshapeData(array):
     reshapedData = []
@@ -82,7 +82,7 @@ def ProcessDataFiles(namePattern, varFileType):
             errs = []
             for data in cData[1]:
                 vals.append(mean(data.real))
-                errs.append(stdev(data.real))
+                errs.append(np.sqrt(variance(data.real)/len(data)))
             obsAve.append(vals)
             obsErr.append(errs)
     else:
@@ -95,12 +95,13 @@ def ProcessDataFiles(namePattern, varFileType):
             errs = []
             for data in cData:
                 vals.append(mean(data.real))
-                errs.append(stdev(data.real))
+                errs.append(np.sqrt(variance(data.real)/len(data)))
             obsAve.append(vals)
             obsErr.append(errs)
     obsAve = ReshapeData([x for _,x in sorted(zip(varSteps, obsAve))])
     obsErr = ReshapeData([x for _,x in sorted(zip(varSteps, obsErr))])
     return header, obsAve, obsErr 
+
 
 def ReadParamsDat(varparFile):
     head = []

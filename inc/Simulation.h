@@ -33,19 +33,23 @@ class HeisenbergChainSimulator {
     // help functions
     void _genstate();   // generate a random state
     void _reinitgmat(); // reinitialize _gmat every sweep
-    void _updateparams(const double&); 
-    std::complex<double> _isingenergy();
-    std::complex<double> _heisenergy();
+    bool _updateparams(const double&); 
   public:
     HeisenbergChainSimulator(const size_t&, const size_t&, ParamList_t&);
     // optimize function accepts the number of variatonal steps, the number of
     // equilibrations per step, the number of configurations to sample per step,
     // and the size of each variational step.
-    size_t _flipspin(); // single spin flip operation
+    size_t _exchange(const size_t&, const size_t&); // flip two spins together
     size_t _flipspin(const size_t&); // single spin flip operation
     void optimize(const size_t&, const size_t&, const size_t&, 
                   const double&, const std::string);
     void _sweep();
+    std::complex<double> _isingenergy();
+    std::complex<double> _heisenergy();
+    void print_auxham(){_auxham.print_matrix();}
+    void print_eigvecs(){std::cout << _auxham.get_eigenvecs() << std::endl;}
+    void print_eigvals(){std::cout << _auxham.get_eigenvals() << std::endl;}
+    void print_redmat(){std::cout << _auxham.get_reduced_matrix(_size) << std::endl;}
     void print_spinstate();
     void print_operslist();
     void print_gmat(){std::cout << _gmat << std::endl;}

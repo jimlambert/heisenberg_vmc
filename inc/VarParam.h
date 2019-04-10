@@ -19,7 +19,7 @@ enum ParamType {Onsite, Hopping, Pairing};
 
 struct BCSVarParam{
   LocalMeasurement<std::complex<double> > lmeas; // local measurements of associated operator 
-  std::complex<double> val; // current value of variational parameter
+  double val; // current value of variational parameter
   int space; // spacing for operator
   ParamType type; // type of parameter chosen from ParamType
   std::string name;
