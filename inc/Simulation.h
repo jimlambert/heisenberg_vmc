@@ -23,7 +23,9 @@ class HeisenbergChainSimulator {
     
     // simulation parameters
     size_t _size;
-    ParamList_t _params; // variational parameter list
+    ParamList_t _params; // variational parameter list from BCS wavefunction
+    JspList_t _jsparams; // list of variational parameters from Jastrow factors
+    double _jsf; // Jastrow spin factor which needs to be tracked
     std::vector<int> _spinstate; // spin state in the S_z basis
     std::vector<size_t> _operslist; // positions of creation operators
     BCSChainHamiltonian _auxham; // auxiliary Hamiltonian
@@ -32,20 +34,22 @@ class HeisenbergChainSimulator {
 
     // help functions
     void _genstate();   // generate a random state
-    void _reinitgmat(); // reinitialize _gmat every sweep
     bool _updateparams(const double&); 
   public:
-    HeisenbergChainSimulator(const size_t&, const size_t&, ParamList_t&);
-    // optimize function accepts the number of variatonal steps, the number of
-    // equilibrations per step, the number of configurations to sample per step,
-    // and the size of each variational step.
+    
     size_t _exchange(const size_t&, const size_t&); // flip two spins together
     size_t _flipspin(const size_t&); // single spin flip operation
+    void _reinitgmat(); // reinitialize _gmat every sweep
+    void _sweep();
+    
+    HeisenbergChainSimulator(const size_t&, const size_t&, ParamList_t&);
+    HeisenbergChainSimulator(const size_t&, const size_t&, ParamList_t&, JspList_t&);
+    
     void optimize(const size_t&, const size_t&, const size_t&, 
                   const double&, const std::string);
-    void _sweep();
     std::complex<double> _isingenergy();
     std::complex<double> _heisenergy();
+    
     void print_auxham(){_auxham.print_matrix();}
     void print_eigvecs(){std::cout << _auxham.get_eigenvecs() << std::endl;}
     void print_eigvals(){std::cout << _auxham.get_eigenvals() << std::endl;}
@@ -53,6 +57,7 @@ class HeisenbergChainSimulator {
     void print_spinstate();
     void print_operslist();
     void print_gmat(){std::cout << _gmat << std::endl;}
+    double jsf(){return _jsf;}
 };
 
 }

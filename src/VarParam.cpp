@@ -6,9 +6,9 @@
 namespace VMC {
 
 BCSVarParam::BCSVarParam
-(const double& v, const int& s, const ParamType& t, const size_t& L, 
+(const double& v, const size_t& s, const ParamType& t, const size_t& L, 
  const size_t& bs, const std::string& n) 
-: lmeas(bs), val(v), space(s), type(t), name(n) {
+: val(v), space(s), type(t), lmeas(bs), name(n) {
   mmat.resize(L,L);
   vmat.resize(L,L);
   vmat=Eigen::MatrixXd::Zero(L,L);
@@ -39,4 +39,5 @@ BCSVarParam::BCSVarParam
       break;
   }
 }
+
 }
