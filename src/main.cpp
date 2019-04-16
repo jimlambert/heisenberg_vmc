@@ -12,11 +12,11 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=6;
+  size_t L=8;
   size_t equil=10000;
-  size_t simul=20000;
+  size_t simul=30000;
   size_t binsize=100;
-  size_t vsteps = 50;
+  size_t vsteps = 70;
   double df = 0.01;
   double p1=1;
   double p2=2;
@@ -31,13 +31,15 @@ int main(int argc, char* argv[]) {
   // ---------------------------------------------------------------------------
   
   // Jastrow parameters --------------------------------------------------------
-  VMC::JastrowParam nnjastrow(-2.0, 1, binsize, "nnJastrow");
+  VMC::JastrowParam nnjastrow(-0.5, 1, binsize, "nnJastrow");
+  VMC::JastrowParam nnnjastrow(0.5, 2, binsize, "nnnJastrow");
   // ---------------------------------------------------------------------------
   
   params.push_back(onsite);
   params.push_back(nnhop);
   params.push_back(ospair);
   jsparams.push_back(nnjastrow);
+  jsparams.push_back(nnnjastrow);
   //VMC::BCSChainHamiltonian testauxham(2*L, params);
   //cout << testauxham.get_hamiltonian() << endl;
   //cout << testauxham.get_eigenvals() << endl;
@@ -52,15 +54,15 @@ int main(int argc, char* argv[]) {
   //} 
   
   VMC::HeisChainSim simulator(L, binsize, params, jsparams);
-  simulator.print_spinstate();
-  simulator.print_operslist();
-  std::cout << simulator.jsf() << std::endl;
-  cout << "----" << endl;
-  simulator._flipspin(0);
-  simulator.print_spinstate();
-  simulator.print_operslist();
-  std::cout << simulator.jsf() << std::endl;
-  cout << "----" << endl;
+  //simulator.print_spinstate();
+  //simulator.print_operslist();
+  //std::cout << simulator.jsf() << std::endl;
+  //cout << "----" << endl;
+  //simulator._flipspin(0);
+  //simulator.print_spinstate();
+  //simulator.print_operslist();
+  //std::cout << simulator.jsf() << std::endl;
+  //cout << "----" << endl;
   //simulator.print_redmat();
   //cout << "----" << endl;
   //simulator.print_gmat();
@@ -74,6 +76,6 @@ int main(int argc, char* argv[]) {
   //simulator.print_gmat();
   //simulator.print_spinstate();
   //simulator.print_operslist();
-  //simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
+  simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
   return 0;
 }

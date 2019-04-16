@@ -116,26 +116,19 @@ void HeisenbergChainSimulator::_reinitgmat() {
 }
 
 bool HeisenbergChainSimulator::_updateparams(const double& df) {
+  
   size_t N=_params.size()+_jsparams.size();
+  size_t Np = _params.size();
+  size_t Nj = _jsparams.size();
   Eigen::MatrixXd S(N,N);
   Eigen::VectorXd F(N); 
   Eigen::VectorXd dA(N);
   S = Eigen::MatrixXd::Zero(N, N);
-  for(size_t ka=0; ka<N; xka++) {  
+  
+  for(size_t ka=0; ka<Np; ka++) {  
     size_t na=_params[ka].lmeas.nvals();
-    size_t ka, kb;
-    for(size_t kb=ka; kb<N; kb++) {
-      size_t nb=_params[kb].lmeas.nvals();
-      if(nb==0) {
-        std::cout << "ERROR: local measurements missing for parameter, "
-                  << _params[kb].name << std::endl;
-        exit(1);
-      }
-      if(na!=nb) {
-        std::cout << "ERROR: local measurements, " << _params[kb].name << " and "
-                  << _params[ka].name << " are different sizes." << std::endl;
-        exit(1);
-      }
+    // Loop for BCS params -----------------------------------------------------
+    for(size_t kb=ka; kb<Np; kb++) {
       std::complex<double> avea=_params[ka].lmeas.ave();
       std::complex<double> aveb=_params[kb].lmeas.ave();
       std::complex<double> total=0.0;
@@ -147,12 +140,48 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
       S(ka,kb)=(total/(double)na).real();
       S(kb,ka)=S(ka,kb);
     }
+    // Loop for Jastrow factors ------------------------------------------------
+    for(size_t j=0; j<_jsparams.size(); j++) {
+      std::complex<double> avea=_params[ka].lmeas.ave();
+      std::complex<double> aveb=_jsparams[j].lmeas.ave();
+      std::complex<double> total=0.0;
+      for(size_t i=0; i<na; i++) {
+        std::complex<double> ai=_params[ka].lmeas[i];
+        std::complex<double> bi=_jsparams[j].lmeas[i];
+        total+=(ai-avea) * (bi-aveb);
+      }
+      S(ka, Np+j)=(total/(double)na).real();
+      S(Np+j, ka)=S(ka, Np+j);
+    }
+    // Loop for BCS forces -----------------------------------------------------
     std::complex<double> total=0.0;
     std::complex<double> avea=_params[ka].lmeas.ave();
     for(size_t i=0; i<na; i++) 
       total+=std::conj(_el[i])*(_params[ka].lmeas[i] - avea);
     F(ka)=-2.0*total.real()/(double)na;
-  } 
+  }
+  
+  for(size_t ja=0; ja<Nj; ja++) {
+    size_t na = _jsparams[ja].lmeas.nvals();
+    for(size_t jb=ja; jb<Nj; jb++) {
+      std::complex<double> avea=_jsparams[ja].lmeas.ave();
+      std::complex<double> aveb=_jsparams[jb].lmeas.ave();
+      std::complex<double> total=0.0;
+      for(size_t i=0; i<na; i++) {
+        std::complex<double> ai=_jsparams[ja].lmeas[i];
+        std::complex<double> bi=_jsparams[jb].lmeas[i];
+        total+=(ai-avea) * (bi-aveb);
+      }
+      S(Np+ja,Np+jb)=(total/(double)na).real();
+      S(Np+jb,Np+ja)=S(Np+ja,Np+jb);
+    }
+    std::complex<double> total=0.0;
+    std::complex<double> avea=_jsparams[ja].lmeas.ave();
+    for(size_t i=0; i<na; i++) 
+      total+=std::conj(_el[i])*(_jsparams[ja].lmeas[i] - avea);
+    F(Np+ja)=-2.0*total.real()/(double)na;
+  }   
+
   // preconditioning -----------------------------------------------------------
   Eigen::MatrixXd S_pc(N,N);
   Eigen::VectorXd F_pc(N); 
@@ -187,10 +216,14 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
     dA = df*S_pc.inverse()*F_pc;
     //std::cout << F << std::endl;
     //dA = df*F;
-    for(size_t k=0; k<N; k++) {
+    for(size_t k=0; k<Np; k++) {
       if(fabs(F_pc[k])<1e-12) continue;
       _params[k].val+=dA[k]/std::sqrt(S(k,k));
     }  
+    for(size_t k=0; k<Nj; k++) {
+      if(fabs(F_pc[k])<1e-12) continue;
+      _jsparams[k].val+=dA[k]/std::sqrt(S(k+Np,k+Np));
+    }
     return false;
   }
   return false;
@@ -301,7 +334,6 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   for(size_t j=0; j<_jsparams.size(); j++) { 
     double v=_jsparams[j].val;
     size_t dx=_jsparams[j].space;
-    std::cout << newspinstate[i] << " i" << std::endl;
     newjsum += v*newspinstate[i]*newspinstate[(i+dx)%_size];
   }
   newjsf=std::exp(newjsum);
@@ -421,8 +453,12 @@ void HeisenbergChainSimulator::optimize
   var_params.open(fvar_params);
   for(auto it=_params.begin(); it!=_params.end(); it++) 
     var_params << std::setw(COLUMN_WITH) << std::left << it->name;
+  for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
+    var_params << std::setw(COLUMN_WITH) << std::left << it->name;
   var_params << '\n';
   for(auto it=_params.begin(); it!=_params.end(); it++) 
+    var_params << std::setw(COLUMN_WITH) << std::left << it->val;
+  for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
     var_params << std::setw(COLUMN_WITH) << std::left << it->val;
   var_params << '\n';
 
@@ -439,6 +475,9 @@ void HeisenbergChainSimulator::optimize
     for(auto it=_params.begin(); it!=_params.end(); it++) {
       measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
     }
+    for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
+      measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
+    }
     measfile << '\n'; 
     // first equilibrate this particular set
     for(size_t i=0; i<equil; i++){
@@ -447,6 +486,9 @@ void HeisenbergChainSimulator::optimize
     std::cout << "equilibration " << vstep << " done." << std::endl;    
     // clear any old measurements
     for(auto it=_params.begin(); it!=_params.end(); it++) {
+      it->lmeas.clear();
+    }
+    for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
       it->lmeas.clear();
     }
     _el.clear();
@@ -489,6 +531,9 @@ void HeisenbergChainSimulator::optimize
       measfile << std::setw(COLUMN_WITH) << std::left << _el(i);
       for(auto pit=_params.begin(); pit!=_params.end(); pit++) 
         measfile << std::setw(COLUMN_WITH) << std::left << pit->lmeas(i);
+      for(auto jit=_jsparams.begin(); jit!=_jsparams.end(); jit++) {
+        measfile << std::setw(COLUMN_WITH) << std::left << jit->lmeas(i);
+      }
       measfile << '\n';
     }
     measfile.close();
@@ -497,6 +542,8 @@ void HeisenbergChainSimulator::optimize
     _updateparams(df);
     std::cout << "outputing new variational parameters" << std::endl;
     for(auto it=_params.begin(); it!=_params.end(); it++) 
+      var_params << std::setw(COLUMN_WITH) << std::left << it->val; 
+    for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
       var_params << std::setw(COLUMN_WITH) << std::left << it->val; 
     var_params << '\n';
     std::cout << "reinitialzing auxiliary Hamiltonian" << std::endl;
