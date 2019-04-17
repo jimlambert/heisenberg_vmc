@@ -325,18 +325,28 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   // ---------------------------------------------------------------------------
   
   // calculate new Jastrow factor ----------------------------------------------
-  std::vector<double> newspinstate;
-  for(size_t i=0; i<_size; i++) newspinstate.push_back(_spinstate[i]);
-  newspinstate[rpos]+=ds; 
+  //std::vector<double> newspinstate;
+  //for(size_t i=0; i<_size; i++) newspinstate.push_back(_spinstate[i]);
+  //newspinstate[rpos]+=ds; 
+  //double newjsf;
+  //double newjsum=0.0;
+  //for(size_t i=0; i<_size; i++) 
+  //for(size_t j=0; j<_jsparams.size(); j++) { 
+  //  double v=_jsparams[j].val;
+  //  size_t dx=_jsparams[j].space;
+  //  newjsum += v*newspinstate[i]*newspinstate[(i+dx)%_size];
+  //}
+  //newjsf=std::exp(newjsum);
+  double dj=0.0;
   double newjsf;
-  double newjsum=0.0;
-  for(size_t i=0; i<_size; i++) 
-  for(size_t j=0; j<_jsparams.size(); j++) { 
-    double v=_jsparams[j].val;
-    size_t dx=_jsparams[j].space;
-    newjsum += v*newspinstate[i]*newspinstate[(i+dx)%_size];
+  for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
+    size_t dr=it->space;
+    size_t rl=(rpos+(_size-dr))%_size;
+    size_t rr=(rpos+(_size+dr))%_size;
+    double v=it->val;
+    dj+=(_spinstate[rl]+_spinstate[rr])*v*ds;
   }
-  newjsf=std::exp(newjsum);
+  newjsf=_jsf*std::exp(dj);
   // ---------------------------------------------------------------------------
   
   // accept flip according to Green's function ---------------------------------
@@ -414,6 +424,17 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       size_t lindex2=_operslist[iexpos2]-1;
       std::complex<double> det=_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
         -_gmat(nexpos2, lindex1)*_gmat(nexpos1, lindex2);
+      double dj=0.0;
+      double newjsf;
+      size_t ds=-1;
+      for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
+        size_t dr=it->space;
+        size_t rl=(i+(_size-dr))%_size;
+        size_t rr=(i+(_size+dr))%_size;
+        double v=it->val;
+        dj+=(_spinstate[rl]+_spinstate[rr])*v*ds;
+      }
+      newjsf=_jsf*std::exp(dj);
       //std::cout << "-+" << std::endl;
       //std::cout << iexpos1 << '\t' << iexpos2 << std::endl;
       //std::cout << nexpos1 << '\t' << nexpos2 << std::endl;

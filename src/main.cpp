@@ -18,9 +18,9 @@ int main(int argc, char* argv[]) {
   size_t binsize=100;
   size_t vsteps = 70;
   double df = 0.01;
-  double p1=1;
-  double p2=2;
-  double p3=3;
+  double p1=0.5;
+  double p2=0.5;
+  double p3=0.5;
   VMC::ParamList_t params;
   VMC::JspList_t jsparams;
   
