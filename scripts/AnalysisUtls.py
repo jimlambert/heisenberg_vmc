@@ -1,6 +1,9 @@
 import numpy as np
 import glob
 import uncertainties
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib.ticker import AutoMinorLocator
 from statistics import mean, stdev, variance
 
 def ReshapeData(array):
@@ -104,6 +107,10 @@ def ProcessDataFiles(namePattern, varFileType):
 
 
 def ReadParamsDat(varparFile):
+    """
+    Read in an undefined number of variational parameters from a data file
+    along with the names of each variational parameter.
+    """
     head = []
     data = []
     with open(varparFile, 'r') as vF:
@@ -116,6 +123,41 @@ def ReadParamsDat(varparFile):
             data.append(np.array(cline))
     data=ReshapeData(data)
     return head, data
+
+
+def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y):
+    """
+    Plot the variational paramters in file.
+    """
+    nPar = len(data)
+    minorLocator=AutoMinorLocator()
+    nSteps = np.arange(0, len(data[0]))
+    width = defaultWidth    # width of plots is set by the user
+    height = int(np.ceil(nPar / width))  # height is set by default
+    # create subplot
+    fig, ax = plt.subplots(nrows=height, ncols=width)
+    fig.figsize=(x, y)
+    gs1=gridspec.GridSpec(height, width)
+    for i in range(0, width):
+        for j in range(0, height):
+            currPar = i+j
+            # check that we haven't exceeded number of plots
+            if (i+j) > nPar:
+                continue
+            else:
+                ax[j][i].plot(nSteps, data[currPar], '.', markersize=ms)
+                ax[j][i].set_xlabel("optimization step", fontsize=ls)
+                ax[j][i].set_ylabel(head[currPar], fontsize=ls)
+                ax[j][i].xaxis.set_minor_locator(minorLocator)
+                ax[j][i].tick_params(axis='both', which='both', width=1)
+                ax[j][i].tick_params(axis='both', which='major', labelsize=ls)
+                ax[j][i].grid(which='both', axis='both')
+                ax[j][i].grid(which='major', axis='both', linestyle='-',
+                              linewidth=0.3)
+                ax[j][i].grid(which='minor', axis='both', linestyle='--',
+                              linewidth=0.1)
+    fig.tight_layout()
+    return fig, ax
 
 
 def AverageEnergies(energyArray, binSize):
