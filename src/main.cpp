@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   size_t equil=10000;
   size_t simul=30000;
   size_t binsize=100;
-  size_t vsteps = 70;
+  size_t vsteps = 100;
   double df = 0.01;
   double p1=0.5;
   double p2=0.5;
@@ -31,8 +31,8 @@ int main(int argc, char* argv[]) {
   // ---------------------------------------------------------------------------
   
   // Jastrow parameters --------------------------------------------------------
-  VMC::JastrowParam nnjastrow(-0.5, 1, binsize, "nnJastrow");
-  VMC::JastrowParam nnnjastrow(0.5, 2, binsize, "nnnJastrow");
+  VMC::JastrowParam nnjastrow(0.1, 1, binsize, "nnJastrow");
+  VMC::JastrowParam nnnjastrow(-0.1, 2, binsize, "nnnJastrow");
   // ---------------------------------------------------------------------------
   
   params.push_back(onsite);

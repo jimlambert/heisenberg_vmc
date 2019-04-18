@@ -125,7 +125,8 @@ def ReadParamsDat(varparFile):
     return head, data
 
 
-def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y):
+def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y,
+                  figTitle):
     """
     Plot the variational paramters in file.
     """
@@ -137,24 +138,25 @@ def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y):
     # create subplot
     fig, ax = plt.subplots(nrows=height, ncols=width)
     fig.figsize=(x, y)
+    fig.suptitle(figTitle, fontsize=fs, y=1.08)
     gs1=gridspec.GridSpec(height, width)
-    for i in range(0, width):
-        for j in range(0, height):
-            currPar = i+j
+    for i in range(0, height):
+        for j in range(0, width):
+            currPar = (i*(width)) + j
             # check that we haven't exceeded number of plots
-            if (i+j) > nPar:
-                continue
+            if currPar >= nPar:
+                ax[i][j].axis('off')
             else:
-                ax[j][i].plot(nSteps, data[currPar], '.', markersize=ms)
-                ax[j][i].set_xlabel("optimization step", fontsize=ls)
-                ax[j][i].set_ylabel(head[currPar], fontsize=ls)
-                ax[j][i].xaxis.set_minor_locator(minorLocator)
-                ax[j][i].tick_params(axis='both', which='both', width=1)
-                ax[j][i].tick_params(axis='both', which='major', labelsize=ls)
-                ax[j][i].grid(which='both', axis='both')
-                ax[j][i].grid(which='major', axis='both', linestyle='-',
+                ax[i][j].plot(nSteps, data[currPar], '.', markersize=ms)
+                ax[i][j].set_xlabel("optimization step", fontsize=ls)
+                ax[i][j].set_ylabel(head[currPar], fontsize=ls)
+                ax[i][j].xaxis.set_minor_locator(minorLocator)
+                ax[i][j].tick_params(axis='both', which='both', width=1)
+                ax[i][j].tick_params(axis='both', which='major', labelsize=ls)
+                ax[i][j].grid(which='both', axis='both')
+                ax[i][j].grid(which='major', axis='both', linestyle='-',
                               linewidth=0.3)
-                ax[j][i].grid(which='minor', axis='both', linestyle='--',
+                ax[i][j].grid(which='minor', axis='both', linestyle='--',
                               linewidth=0.1)
     fig.tight_layout()
     return fig, ax
