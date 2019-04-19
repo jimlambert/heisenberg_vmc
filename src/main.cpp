@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=8;
+  size_t L=4;
   size_t equil=10000;
   size_t simul=30000;
   size_t binsize=100;
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   // ---------------------------------------------------------------------------
   
   // Jastrow parameters --------------------------------------------------------
-  VMC::JastrowParam nnjastrow(0.1, 1, binsize, "nnJastrow");
+  VMC::JastrowParam nnjastrow(-0.1, 1, binsize, "nnJastrow");
   VMC::JastrowParam nnnjastrow(-0.1, 2, binsize, "nnnJastrow");
   // ---------------------------------------------------------------------------
   
@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   params.push_back(nnhop);
   params.push_back(ospair);
   jsparams.push_back(nnjastrow);
-  jsparams.push_back(nnnjastrow);
+  //jsparams.push_back(nnnjastrow);
   //VMC::BCSChainHamiltonian testauxham(2*L, params);
   //cout << testauxham.get_hamiltonian() << endl;
   //cout << testauxham.get_eigenvals() << endl;
@@ -77,5 +77,6 @@ int main(int argc, char* argv[]) {
   //simulator.print_spinstate();
   //simulator.print_operslist();
   simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
+  
   return 0;
 }

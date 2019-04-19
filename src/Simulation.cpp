@@ -198,15 +198,15 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
   //Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solveS;
   //solveS.compute(S_pc);
   //std::cout << solveS.eigenvalues() << std::endl;
-  std::cout << S << std::endl;
-  std::cout << "----" << std::endl;
-  std::cout << S_pc << std::endl;
-  std::cout << "----" << std::endl;
-  std::cout << S_pc.inverse() << std::endl;
-  std::cout << "----" << std::endl;
-  std::cout << F << std::endl;
-  std::cout << "----" << std::endl;
-  std::cout << F_pc << std::endl;
+  //std::cout << S << std::endl;
+  //std::cout << "----" << std::endl;
+  //std::cout << S_pc << std::endl;
+  //std::cout << "----" << std::endl;
+  //std::cout << S_pc.inverse() << std::endl;
+  //std::cout << "----" << std::endl;
+  //std::cout << F << std::endl;
+  //std::cout << "----" << std::endl;
+  //std::cout << F_pc << std::endl;
 
   if(fabs(S_pc.determinant())<1e-12) {
     std::cout << "CONVERGED: S IS SINGULAR" << std::endl;
@@ -424,22 +424,22 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       size_t lindex2=_operslist[iexpos2]-1;
       std::complex<double> det=_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
         -_gmat(nexpos2, lindex1)*_gmat(nexpos1, lindex2);
-      double dj=0.0;
+      // We'll just use the bad solution for the time being
+      std::vector<int> newstate;
       double newjsf;
-      size_t ds=-1;
-      for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
-        size_t dr=it->space;
-        size_t rl=(i+(_size-dr))%_size;
-        size_t rr=(i+(_size+dr))%_size;
-        double v=it->val;
-        dj+=(_spinstate[rl]+_spinstate[rr])*v*ds;
+      double newjsum=0.0;
+      for(size_t k=0; k<_spinstate.size(); k++) 
+        newstate.push_back(_spinstate[k]);
+      newstate[i]=newstate[i]-2;
+      newstate[j]=newstate[j]+2;
+      for(size_t k=0; k<_size; k++) 
+      for(size_t l=0; l<_jsparams.size(); l++) { 
+        double v=_jsparams[l].val;
+        size_t dx=_jsparams[l].space;
+        newjsum += v*newstate[k]*newstate[(k+dx)%_size];
       }
-      newjsf=_jsf*std::exp(dj);
-      //std::cout << "-+" << std::endl;
-      //std::cout << iexpos1 << '\t' << iexpos2 << std::endl;
-      //std::cout << nexpos1 << '\t' << nexpos2 << std::endl;
-      //std::cout << lindex1 << '\t' << lindex2 << std::endl;
-      //std::cout << det << std::endl;
+      newjsf=std::exp(newjsum);
+      det = (newjsf/_jsf)*det;
       total += 0.5 * det;
     }
     else {
@@ -451,11 +451,21 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       size_t lindex2=_operslist[iexpos2]-1;
       std::complex<double> det=_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
         -_gmat(nexpos2, lindex1)*_gmat(nexpos1, lindex2);
-      //std::cout << "+-" << std::endl;
-      //std::cout << iexpos1 << '\t' << iexpos2 << std::endl;
-      //std::cout << nexpos1 << '\t' << nexpos2 << std::endl;
-      //std::cout << lindex1 << '\t' << lindex2 << std::endl;
-      //std::cout << det << std::endl;
+      std::vector<int> newstate;
+      double newjsf;
+      double newjsum=0.0;
+      for(size_t k=0; k<_spinstate.size(); k++) 
+        newstate.push_back(_spinstate[k]);
+      newstate[i]=newstate[i]+2;
+      newstate[j]=newstate[j]-2;
+      for(size_t k=0; k<_size; k++) 
+      for(size_t l=0; l<_jsparams.size(); l++) { 
+        double v=_jsparams[l].val;
+        size_t dx=_jsparams[l].space;
+        newjsum += v*newstate[k]*newstate[(k+dx)%_size];
+      }
+      newjsf=std::exp(newjsum);
+      det = (newjsf/_jsf)*det;
       total += 0.5 * det;
     }
   }
@@ -519,8 +529,8 @@ void HeisenbergChainSimulator::optimize
     for(size_t i=0; i<simul; i++) { 
       // start with a sweep
       _sweep();
-      std::complex<double> e=_isingenergy();
-      //std::complex<double> e=_heisenergy();
+      //std::complex<double> e=_isingenergy();
+      std::complex<double> e=_heisenergy();
       _el.push(e); // record energy
       // -------------------------
       // Loop through O_k(x) for each variational parameter
