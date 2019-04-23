@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
   VMC::BCSVarParam onsite(p1, 0, VMC::Onsite, 2*L, binsize, "onsite");
   VMC::BCSVarParam nnhop(p2, 1, VMC::Hopping, 2*L, binsize, "nnhop");
   VMC::BCSVarParam ospair(p3, 0, VMC::Pairing, 2*L, binsize, "ospair");
+  VMC::BCSVarParam nnpair(p3, 1, VMC::Pairing, 2*L, binsize, "ophop");
   // ---------------------------------------------------------------------------
   
   // Jastrow parameters --------------------------------------------------------
@@ -38,8 +39,9 @@ int main(int argc, char* argv[]) {
   params.push_back(onsite);
   params.push_back(nnhop);
   params.push_back(ospair);
+  params.push_back(nnpair);
   jsparams.push_back(nnjastrow);
-  //jsparams.push_back(nnnjastrow);
+  jsparams.push_back(nnnjastrow);
   //VMC::BCSChainHamiltonian testauxham(2*L, params);
   //cout << testauxham.get_hamiltonian() << endl;
   //cout << testauxham.get_eigenvals() << endl;
@@ -57,25 +59,7 @@ int main(int argc, char* argv[]) {
   //simulator.print_spinstate();
   //simulator.print_operslist();
   //std::cout << simulator.jsf() << std::endl;
-  //cout << "----" << endl;
-  //simulator._flipspin(0);
-  //simulator.print_spinstate();
-  //simulator.print_operslist();
-  //std::cout << simulator.jsf() << std::endl;
-  //cout << "----" << endl;
-  //simulator.print_redmat();
-  //cout << "----" << endl;
-  //simulator.print_gmat();
-  //simulator.print_spinstate();
-  //simulator.print_operslist();
-  //cout << "----" << endl;
-  //simulator._exchange(0,1);
-  //simulator.print_gmat();
-  //cout << "---- reinit ----" << endl;
-  //simulator._reinitgmat();
-  //simulator.print_gmat();
-  //simulator.print_spinstate();
-  //simulator.print_operslist();
+  //std::cout << simulator._heisenergy() << std::endl; 
   simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
   
   return 0;

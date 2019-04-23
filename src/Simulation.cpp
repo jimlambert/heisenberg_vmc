@@ -78,7 +78,7 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
   for(size_t j=0; j<_jsparams.size(); j++) {
     double v=_jsparams[j].val;
     size_t dx=_jsparams[j].space;
-    total += v*_spinstate[i]*_spinstate[(i+dx)%_size];
+    total += 0.25*v*_spinstate[i]*_spinstate[(i+dx)%_size];
   }
   _jsf = std::exp(total);
   // ---------------------------------------------------------------------------
@@ -323,20 +323,6 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     ds=2;
   }
   // ---------------------------------------------------------------------------
-  
-  // calculate new Jastrow factor ----------------------------------------------
-  //std::vector<double> newspinstate;
-  //for(size_t i=0; i<_size; i++) newspinstate.push_back(_spinstate[i]);
-  //newspinstate[rpos]+=ds; 
-  //double newjsf;
-  //double newjsum=0.0;
-  //for(size_t i=0; i<_size; i++) 
-  //for(size_t j=0; j<_jsparams.size(); j++) { 
-  //  double v=_jsparams[j].val;
-  //  size_t dx=_jsparams[j].space;
-  //  newjsum += v*newspinstate[i]*newspinstate[(i+dx)%_size];
-  //}
-  //newjsf=std::exp(newjsum);
   double dj=0.0;
   double newjsf;
   for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
@@ -344,7 +330,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     size_t rl=(rpos+(_size-dr))%_size;
     size_t rr=(rpos+(_size+dr))%_size;
     double v=it->val;
-    dj+=(_spinstate[rl]+_spinstate[rr])*v*ds;
+    dj+=0.25*(_spinstate[rl]+_spinstate[rr])*v*ds;
   }
   newjsf=_jsf*std::exp(dj);
   // ---------------------------------------------------------------------------
@@ -401,8 +387,8 @@ void HeisenbergChainSimulator::_sweep() {
 std::complex<double> HeisenbergChainSimulator::_isingenergy() {
   std::complex<double> total=0.0;
   for(size_t i=0; i<_size; i++) {
-    if(i<(_size-1)) total+=_spinstate[i]*_spinstate[i+1];
-    else total+=_spinstate[0]*_spinstate[i];
+    if(i<(_size-1)) total+=0.25*_spinstate[i]*_spinstate[i+1];
+    else total+=0.25*_spinstate[0]*_spinstate[i];
   }
   return total;
 }
@@ -436,7 +422,7 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       for(size_t l=0; l<_jsparams.size(); l++) { 
         double v=_jsparams[l].val;
         size_t dx=_jsparams[l].space;
-        newjsum += v*newstate[k]*newstate[(k+dx)%_size];
+        newjsum += 0.25*v*newstate[k]*newstate[(k+dx)%_size];
       }
       newjsf=std::exp(newjsum);
       det = (newjsf/_jsf)*det;
@@ -462,7 +448,7 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       for(size_t l=0; l<_jsparams.size(); l++) { 
         double v=_jsparams[l].val;
         size_t dx=_jsparams[l].space;
-        newjsum += v*newstate[k]*newstate[(k+dx)%_size];
+        newjsum += 0.25*v*newstate[k]*newstate[(k+dx)%_size];
       }
       newjsf=std::exp(newjsum);
       det = (newjsf/_jsf)*det;
