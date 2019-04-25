@@ -361,7 +361,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
 
     // update Jastrow factor
     _jsf=newjsf;
-
+    _ffac = -1.0*_ffac;
     return 1;
   }
   return 0;
@@ -426,7 +426,8 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       }
       newjsf=std::exp(newjsum);
       det = (newjsf/_jsf)*det;
-      total += 0.5 * det;
+      total += 0.5 * det*_ffac*(-1.0);
+      std::cout << "det: " << det << std::endl;
     }
     else {
       size_t iexpos1=i+_size;   
@@ -451,8 +452,9 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
         newjsum += 0.25*v*newstate[k]*newstate[(k+dx)%_size];
       }
       newjsf=std::exp(newjsum);
+      std::cout << "det: " << det << std::endl;
       det = (newjsf/_jsf)*det;
-      total += 0.5 * det;
+      total += 0.5 * det*_ffac*(-1.0);
     }
   }
   return total;

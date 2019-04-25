@@ -12,15 +12,15 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=4;
+  size_t L=2;
   size_t equil=10000;
   size_t simul=30000;
   size_t binsize=100;
   size_t vsteps = 100;
   double df = 0.01;
-  double p1=0.5;
-  double p2=0.5;
-  double p3=0.5;
+  double p1=-0.1;
+  double p2=0.2;
+  double p3=-0.3;
   VMC::ParamList_t params;
   VMC::JspList_t jsparams;
   
@@ -39,9 +39,9 @@ int main(int argc, char* argv[]) {
   params.push_back(onsite);
   params.push_back(nnhop);
   params.push_back(ospair);
-  params.push_back(nnpair);
+  //params.push_back(nnpair);
   jsparams.push_back(nnjastrow);
-  jsparams.push_back(nnnjastrow);
+  //jsparams.push_back(nnnjastrow);
   //VMC::BCSChainHamiltonian testauxham(2*L, params);
   //cout << testauxham.get_hamiltonian() << endl;
   //cout << testauxham.get_eigenvals() << endl;
@@ -56,11 +56,12 @@ int main(int argc, char* argv[]) {
   //} 
   
   VMC::HeisChainSim simulator(L, binsize, params, jsparams);
-  //simulator.print_spinstate();
-  //simulator.print_operslist();
-  //std::cout << simulator.jsf() << std::endl;
-  //std::cout << simulator._heisenergy() << std::endl; 
-  simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
+  simulator.print_spinstate();
+  simulator.print_operslist();
+  simulator.print_gmat();
+  std::cout << simulator.jsf() << std::endl;
+  std::cout << simulator._heisenergy() << std::endl; 
+  //simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
   
   return 0;
 }

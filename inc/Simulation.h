@@ -21,6 +21,7 @@ class HeisenbergChainSimulator {
     std::uniform_real_distribution<double> _rnum{0.0, 1.0};
     std::uniform_int_distribution<int>* _rpos; // random position
     
+    double _ffac=1.0;    
     // simulation parameters
     size_t _size;
     ParamList_t _params; // variational parameter list from BCS wavefunction
