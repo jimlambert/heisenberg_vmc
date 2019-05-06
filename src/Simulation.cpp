@@ -16,7 +16,8 @@
 namespace VMC {
 namespace SIMULATION {
 
-#define COLUMN_WITH 20
+#define COLUMN_WIDTH 20
+#define OUTPUT_WIDTH 10
 
 HeisenbergChainSimulator::HeisenbergChainSimulator
 (const size_t& N, const size_t& bs, ParamList_t& params) 
@@ -78,7 +79,7 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
   for(size_t j=0; j<_jsparams.size(); j++) {
     double v=_jsparams[j].val;
     size_t dx=_jsparams[j].space;
-    total += 0.25*v*_spinstate[i]*_spinstate[(i+dx)%_size];
+    total += 0.25*v*(double)_spinstate[i]*(double)_spinstate[(i+dx)%_size];
   }
   _jsf = std::exp(total);
   // ---------------------------------------------------------------------------
@@ -187,10 +188,10 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
   Eigen::VectorXd F_pc(N); 
   for(size_t ka=0; ka<N; ka++) {
     F_pc(ka)=F(ka)/std::sqrt(S(ka,ka));
-    if(fabs(F(ka)) < 1e-10) F_pc(ka) = 0;
+    if(fabs(F(ka)) < 1e-12) F_pc(ka) = 0;
     for(size_t kb=0; kb<N; kb++) {
       S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
-      if(fabs(S(ka,kb)) < 1e-14) S_pc(ka, kb) = 0;
+      if(fabs(S(ka,kb)) < 1e-12) S_pc(ka, kb) = 0;
       if(ka==kb) S_pc(ka, kb) += 1e-3;
     }
   }
@@ -208,7 +209,7 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
   //std::cout << "----" << std::endl;
   //std::cout << F_pc << std::endl;
 
-  if(fabs(S_pc.determinant())<1e-12) {
+  if(fabs(S_pc.determinant())<1e-7) {
     std::cout << "CONVERGED: S IS SINGULAR" << std::endl;
     return true;
   }
@@ -217,19 +218,16 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
     //std::cout << F << std::endl;
     //dA = df*F;
     for(size_t k=0; k<Np; k++) {
-      if(fabs(F_pc[k])<1e-12) continue;
+      if(fabs(F_pc[k])<1e-7) continue;
       _params[k].val+=dA[k]/std::sqrt(S(k,k));
     }  
     for(size_t k=0; k<Nj; k++) {
-      if(fabs(F_pc[k])<1e-12) continue;
-      _jsparams[k].val+=dA[k]/std::sqrt(S(k+Np,k+Np));
+      if(fabs(F_pc[k+Np])<1e-7) continue;
+      _jsparams[k].val+=dA[k+Np]/std::sqrt(S(k+Np,k+Np));
     }
     return false;
   }
   return false;
-  //dA = df*F;
-  //dA = S.inverse()*F*df; 
-  //for(size_t k=0; k<N; k++) _params[k].val+=dA[k];
 }
 
 size_t HeisenbergChainSimulator::_exchange(const size_t& i, const size_t& j) { 
@@ -310,17 +308,22 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   size_t iexpos; // initial position in extended basis
   size_t nexpos; // new position in extended basis
   size_t lindex; // index of position in W array
+  size_t nferms=0; // number of fermion swaps
   int ds; // change in spin
   // determine new location of spin in extended state --------------------------
   if(_spinstate[rpos]==1){
     iexpos=rpos;
     nexpos=iexpos+_size;
     ds=-2;
+    for(size_t i=iexpos+1; i<nexpos; i++)
+      if(_operslist[i]!=0) nferms += 1;
   }
   else{
     iexpos=rpos+_size;
     nexpos=iexpos-_size;
     ds=2;
+    for(size_t i=nexpos+1; i<iexpos; i++)
+      if(_operslist[i]!=0) nferms += 1;
   }
   // ---------------------------------------------------------------------------
   double dj=0.0;
@@ -330,14 +333,14 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     size_t rl=(rpos+(_size-dr))%_size;
     size_t rr=(rpos+(_size+dr))%_size;
     double v=it->val;
-    dj+=0.25*(_spinstate[rl]+_spinstate[rr])*v*ds;
+    dj+=0.25*(double)(_spinstate[rl]+_spinstate[rr])*v*(double)ds;
   }
   newjsf=_jsf*std::exp(dj);
   // ---------------------------------------------------------------------------
   
   // accept flip according to Green's function ---------------------------------
   lindex=_operslist[iexpos]-1;
-  double amp=(newjsf/_jsf)*fabs(_gmat(nexpos, lindex));
+  double amp=(std::exp(dj))*fabs(_gmat(nexpos, lindex));
   double rnum = _rnum(_mteng);
    
   if(rnum<amp*amp){
@@ -361,7 +364,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
 
     // update Jastrow factor
     _jsf=newjsf;
-    _ffac = -1.0*_ffac;
+    _ffac = std::pow(-1.0, nferms)*_ffac;
     return 1;
   }
   return 0;
@@ -374,12 +377,6 @@ void HeisenbergChainSimulator::_sweep() {
     int rpos=(*_rpos)(_mteng);
     size_t n=0;
     n = _flipspin(rpos);
-    //int rpos1=(*_rpos)(_mteng);
-    //int rpos2;
-    //do rpos2=(*_rpos)(_mteng); while(rpos2==rpos1);
-    //n = _exchange(rpos1, rpos2);
-    //if(rnum<0.5) n=_flipspin(rpos);
-    //else n=_exchange();
   } 
   _reinitgmat();
 }
@@ -387,8 +384,8 @@ void HeisenbergChainSimulator::_sweep() {
 std::complex<double> HeisenbergChainSimulator::_isingenergy() {
   std::complex<double> total=0.0;
   for(size_t i=0; i<_size; i++) {
-    if(i<(_size-1)) total+=0.25*_spinstate[i]*_spinstate[i+1];
-    else total+=0.25*_spinstate[0]*_spinstate[i];
+    if(i<(_size-1)) total+=0.25*(double)_spinstate[i]*(double)_spinstate[i+1];
+    else total+=0.25*(double)_spinstate[0]*(double)_spinstate[i];
   }
   return total;
 }
@@ -422,12 +419,12 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       for(size_t l=0; l<_jsparams.size(); l++) { 
         double v=_jsparams[l].val;
         size_t dx=_jsparams[l].space;
-        newjsum += 0.25*v*newstate[k]*newstate[(k+dx)%_size];
+        newjsum += 0.25*v*(double)newstate[k]*(double)newstate[(k+dx)%_size];
       }
       newjsf=std::exp(newjsum);
       det = (newjsf/_jsf)*det;
-      total += 0.5 * det*_ffac*(-1.0);
-      std::cout << "det: " << det << std::endl;
+      //total += 0.5*det*_ffac*(-1.0);
+      total -= 0.5 * det * _ffac;
     }
     else {
       size_t iexpos1=i+_size;   
@@ -449,12 +446,12 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       for(size_t l=0; l<_jsparams.size(); l++) { 
         double v=_jsparams[l].val;
         size_t dx=_jsparams[l].space;
-        newjsum += 0.25*v*newstate[k]*newstate[(k+dx)%_size];
+        newjsum += 0.25*v*(double)newstate[k]*(double)newstate[(k+dx)%_size];
       }
       newjsf=std::exp(newjsum);
-      std::cout << "det: " << det << std::endl;
+      //std::cout << "det: " << det << std::endl;
       det = (newjsf/_jsf)*det;
-      total += 0.5 * det*_ffac*(-1.0);
+      total -= 0.5 * det * _ffac;
     }
   }
   return total;
@@ -471,58 +468,49 @@ void HeisenbergChainSimulator::optimize
   std::string fvar_params="var_params.dat";
   var_params.open(fvar_params);
   for(auto it=_params.begin(); it!=_params.end(); it++) 
-    var_params << std::setw(COLUMN_WITH) << std::left << it->name;
+    var_params << std::setw(COLUMN_WIDTH) << std::left << it->name;
   for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
-    var_params << std::setw(COLUMN_WITH) << std::left << it->name;
+    var_params << std::setw(COLUMN_WIDTH) << std::left << it->name;
   var_params << '\n';
   for(auto it=_params.begin(); it!=_params.end(); it++) 
-    var_params << std::setw(COLUMN_WITH) << std::left << it->val;
+    var_params << std::setw(COLUMN_WIDTH) << std::left << it->val;
   for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
-    var_params << std::setw(COLUMN_WITH) << std::left << it->val;
+    var_params << std::setw(COLUMN_WIDTH) << std::left << it->val;
   var_params << '\n';
 
-  // -----------------------------
-  // Main loop for variational steps
-  // -----------------------------
+  // Loop for variational steps ------------------------------------------------
   for(size_t vstep=0; vstep<vsteps; vstep++) {
     // open file for local observables
     std::ofstream measfile;
     std::string measfileName=ofname+std::to_string(vstep)+".dat";
     measfile.open(measfileName);  
     measfile << vstep << '\n';
-    measfile << std::setw(COLUMN_WITH) << std::left << "e_L";
+    measfile << std::setw(COLUMN_WIDTH) << std::left << "e_L";
     for(auto it=_params.begin(); it!=_params.end(); it++) {
-      measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
+      measfile << std::setw(COLUMN_WIDTH) << std::left << it->name; 
     }
     for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
-      measfile << std::setw(COLUMN_WITH) << std::left << it->name; 
+      measfile << std::setw(COLUMN_WIDTH) << std::left << it->name; 
     }
     measfile << '\n'; 
-    // first equilibrate this particular set
-    for(size_t i=0; i<equil; i++){
-      _sweep();
-    }
+    // equilibrate -------------------------------------------------------------
+    for(size_t i=0; i<equil; i++) _sweep();
     std::cout << "equilibration " << vstep << " done." << std::endl;    
-    // clear any old measurements
-    for(auto it=_params.begin(); it!=_params.end(); it++) {
-      it->lmeas.clear();
-    }
-    for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
-      it->lmeas.clear();
-    }
+    // clear any old measurements ----------------------------------------------
+    for(auto it=_params.begin(); it!=_params.end(); it++) it->lmeas.clear();  
+    for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) it->lmeas.clear();
     _el.clear();
-    // -------------------
-    // Loop for sampling wavefunction
-    // -------------------
+    // -------------------------------------------------------------------------
+    
+    // Sample wavefunction -----------------------------------------------------
     for(size_t i=0; i<simul; i++) { 
       // start with a sweep
       _sweep();
       //std::complex<double> e=_isingenergy();
       std::complex<double> e=_heisenergy();
       _el.push(e); // record energy
-      // -------------------------
-      // Loop through O_k(x) for each variational parameter
-      // -------------------------
+
+      // Measure variational parameters ----------------------------------------
       for(auto it=_params.begin(); it!=_params.end(); it++) {
         Eigen::MatrixXcd redMat(_size, 2*_size); // N_e X 2L matrix
         Eigen::MatrixXcd okmat; // operator to measure
@@ -542,16 +530,18 @@ void HeisenbergChainSimulator::optimize
         size_t dx=it->space;
         double total=0.0;
         for(size_t r=0; r<_size; r++) 
-          total+=_spinstate[r]*_spinstate[(r+dx)%_size];    
+          total+=0.25*_spinstate[r]*_spinstate[(r+dx)%_size];    
         it->lmeas.push(total/(double)_size);
       }
+      // -----------------------------------------------------------------------
     }
+    // -------------------------------------------------------------------------
     for(size_t i=0; i<_el.nbins(); i++) {
-      measfile << std::setw(COLUMN_WITH) << std::left << _el(i);
+      measfile << std::setw(COLUMN_WIDTH) << std::left << _el(i);
       for(auto pit=_params.begin(); pit!=_params.end(); pit++) 
-        measfile << std::setw(COLUMN_WITH) << std::left << pit->lmeas(i);
+        measfile << std::setw(COLUMN_WIDTH) << std::left << pit->lmeas(i);
       for(auto jit=_jsparams.begin(); jit!=_jsparams.end(); jit++) {
-        measfile << std::setw(COLUMN_WITH) << std::left << jit->lmeas(i);
+        measfile << std::setw(COLUMN_WIDTH) << std::left << jit->lmeas(i);
       }
       measfile << '\n';
     }
@@ -561,13 +551,14 @@ void HeisenbergChainSimulator::optimize
     _updateparams(df);
     std::cout << "outputing new variational parameters" << std::endl;
     for(auto it=_params.begin(); it!=_params.end(); it++) 
-      var_params << std::setw(COLUMN_WITH) << std::left << it->val; 
+      var_params << std::setw(COLUMN_WIDTH) << std::left << it->val; 
     for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) 
-      var_params << std::setw(COLUMN_WITH) << std::left << it->val; 
+      var_params << std::setw(COLUMN_WIDTH) << std::left << it->val; 
     var_params << '\n';
     std::cout << "reinitialzing auxiliary Hamiltonian" << std::endl;
     _auxham.init(_params);
   }
+  // ---------------------------------------------------------------------------
   var_params.close();
   var_params.clear();
 }
@@ -580,6 +571,19 @@ void HeisenbergChainSimulator::print_spinstate() {
 void HeisenbergChainSimulator::print_operslist() {
   for(size_t i=0; i<2*_size; i++) std::cout << _operslist[i] << '\t';
   std::cout << std::endl; 
+}
+
+void HeisenbergChainSimulator::print_params() {
+  for(auto it=_params.begin(); it!=_params.end(); it++)
+    std::cout << std::setw(OUTPUT_WIDTH) << std::left 
+              << it->name << std::setw(3) << " : " 
+              << std::setw(OUTPUT_WIDTH) << std::left << it->val
+              << std:: endl;
+  for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++)
+    std::cout << std::setw(OUTPUT_WIDTH) << std::left 
+              << it->name << std::setw(3) << " : " 
+              << std::setw(OUTPUT_WIDTH) << std::left << it->val
+              << std::endl;
 }
 
 }

@@ -55,9 +55,10 @@ class HeisenbergChainSimulator {
     void print_eigvecs(){std::cout << _auxham.get_eigenvecs() << std::endl;}
     void print_eigvals(){std::cout << _auxham.get_eigenvals() << std::endl;}
     void print_redmat(){std::cout << _auxham.get_reduced_matrix(_size) << std::endl;}
+    void print_gmat(){std::cout << _gmat << std::endl;}
     void print_spinstate();
     void print_operslist();
-    void print_gmat(){std::cout << _gmat << std::endl;}
+    void print_params();
     double jsf(){return _jsf;}
 };
 

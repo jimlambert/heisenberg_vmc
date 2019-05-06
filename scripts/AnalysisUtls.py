@@ -137,7 +137,7 @@ def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y,
     height = int(np.ceil(nPar / width))  # height is set by default
     # create subplot
     fig, ax = plt.subplots(nrows=height, ncols=width)
-    fig.figsize=(x, y)
+    fig.set_size_inches(x, y)
     fig.suptitle(figTitle, fontsize=fs, y=1.08)
     gs1=gridspec.GridSpec(height, width)
     for i in range(0, height):
