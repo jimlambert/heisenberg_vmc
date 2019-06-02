@@ -52,25 +52,11 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
     Eigen::MatrixXcd UVU(_L, _L);
     Eigen::MatrixXcd Q(_L, _L);
     Q = Eigen::MatrixXcd::Zero(_L, _L);
-    //UVU = U*(it->vmat)*U.adjoint();
     UVU = U.adjoint()*(it->vmat)*U;
     for(size_t i=0; i<_L; i++)
     for(size_t j=0; j<_L; j++)
       if((i>((_L/2)-1))&&(j<=((_L/2)-1))) Q(i,j)=UVU(i,j)/(e(j)-e(i));
-    //it->mmat=U.adjoint()*Q*(U);
     it->mmat=U*Q*(U.adjoint());
-    //std::cout << it->name << std::endl;
-    //std::cout << "vmat: " << std::endl;
-    //std::cout << it->vmat << std::endl;
-    //std::cout << "U:" << std::endl;
-    //std::cout << U << std::endl;
-    //std::cout << "UVU:" << std::endl;
-    //std::cout << UVU << std::endl;
-    //std::cout << "Q:" << std::endl;
-    //std::cout << Q << std::endl;
-    //std::cout << "----" << std::endl;
-    //std::cout << "mmat: " << std::endl;
-    //std::cout << it->mmat << std::endl;
   } 
 }
 

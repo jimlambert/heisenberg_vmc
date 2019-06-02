@@ -86,6 +86,10 @@ class LocalMeasurement {
     constVecIter begin() const {return _binaves.begin();}
     constVecIter end() const {return _binaves.end();}
 };  
+
+typedef LocalMeasurement<std::complex<double> > MeasCd;
+typedef LocalMeasurement<double>                MeasD;
+
 }
 
 #endif // LOCAL_MEASUREMENT_H

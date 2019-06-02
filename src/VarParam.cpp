@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iostream>
+#include "BasisState.h"
 #include "VarParam.h"
 
 namespace VMC {
@@ -32,6 +33,7 @@ BCSVarParam::BCSVarParam
       } 
       break;
     case Pairing:
+      //int ffac=std::pow(-1, s);
       for(size_t i=0; i<L/2; i++) {
         vmat(i, (i+space)%(L/2)+(L/2))=1;
         vmat((i+space)%(L/2)+(L/2), i)=1;

@@ -9,8 +9,11 @@
 #define VARPARAM_H
 
 #include <Eigen/Dense>
+#include <string>
 #include <vector>
 #include <complex>
+#include <memory>
+#include "BasisState.h"
 #include "LocalMeasurement.h"
 
 namespace VMC{
@@ -43,6 +46,6 @@ struct JastrowParam {
 
 typedef std::vector<JastrowParam> JspList_t;
 
-}
+} // VMC namespace
 
 #endif // VARPARAM_H
