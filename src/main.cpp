@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=8;
+  size_t L=4;
   size_t equil=10000;
   size_t simul=10000;
   size_t binsize=100;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
   //  cout << "----" << endl; 
   //} 
   
-  VMC::HeisChainSim simulator(L, binsize, params, jsparams);
+  VMC::HeisChainSim simulator(L, binsize, params);
   //simulator.print_gmat();
   //simulator.print_spinstate();
   //simulator.print_operslist();
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
   //simulator.print_gmat();
   //simulator.print_spinstate();
   //simulator.print_operslist();
-  std::cout << simulator._heisenergy() << std::endl;
+  //std::cout << simulator._heisenergy() << std::endl;
   simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
   simulator.print_params();  
   return 0;

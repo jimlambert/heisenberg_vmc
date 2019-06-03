@@ -19,12 +19,12 @@ class HoppingHamiltonian : AuxiliaryHamiltonian {
     HoppingHamiltonian(
         const bool&,         // translation invariant
         const size_t&,       // size of expanded basis state 
-        const AuxParamsSVec& // variational parameters 
+        const AuxParamSVec&  // variational parameters 
     );
     void solve() {_solver.compute(_hopping_matrix);}
-    void init(const AuxParamsSVec&);
-    void set_vmats(const AuxParamsSVec&);
-    void set_mmats(const AuxParamsSVec&);
+    void init(const AuxParamSVec&);
+    void set_vmats(const AuxParamSVec&);
+    void set_mmats(const AuxParamSVec&);
     Eigen::MatrixXcd get_reduced_matrix(const size_t&);
 };
 

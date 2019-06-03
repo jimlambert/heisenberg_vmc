@@ -2,6 +2,7 @@
 #define PARAMETER_LIST_H
 
 #include <vector>
+#include <memory>
 #include "AuxiliaryParameter.h"
 #include "JastrowParameter.h"
 
@@ -15,12 +16,12 @@ class ParameterList {
   private:
     size_t       _naux;
     size_t       _njas;
-    AuxParamSVec _aux_params;
-    JasParamSVec _jas_params;
+    AuxParamUVec _aux_params;
+    JasParamUVec _jas_params;
   public:
     ParameterList() : _naux(0), _njas(0) {}
-    void push_aux_param(JasParamUPtr);
-    void push_jas_param(AuxParamUPtr);
+    void push_aux_param(AuxParamUPtr);
+    void push_jas_param(JasParamUPtr);
     size_t njas() {return _njas;}
     size_t naux() {return _naux;}
     size_t npar() {return _njas+_naux;}

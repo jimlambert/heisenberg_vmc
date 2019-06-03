@@ -43,8 +43,13 @@ HeisenbergChainSimulator::HeisenbergChainSimulator
         projmat(i, j) = redmat(pos, j);
       }
     }
-  } while(fabs(projmat.determinant())<1e-12);
-  _gmat = redmat*projmat.inverse();
+  } while(fabs(abs(projmat.determinant()))<1e-12);
+  //print_spinstate();
+  //print_operslist();
+  //std::cout << redmat << std::endl;
+  //std::cout << "----" << std::endl;
+  //std::cout << projmat << std::endl;
+  _gmat = redmat*(projmat.inverse());
 }
 
 HeisenbergChainSimulator::HeisenbergChainSimulator
@@ -191,27 +196,27 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
     //if(fabs(F(ka)) < 1e-5) F_pc(ka) = 0;
     for(size_t kb=0; kb<N; kb++) {
       S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
-      if(ka==kb) S_pc(ka,kb)+=1e-3;
+      if(ka==kb) S_pc(ka,kb)=1+1e-3;
     }
   }
   // ---------------------------------------------------------------------------
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solveS;
   solveS.compute(S);
-  std::vector<size_t> indices;
-  Eigen::MatrixXcd U=solveS.eigenvectors();
+  //std::vector<size_t> indices;
+  //Eigen::MatrixXcd U=solveS.eigenvectors();
   Eigen::VectorXd e=solveS.eigenvalues();
-  for(size_t i=0; i<N; i++) if(F_pc(i)>1e-10) indices.push_back(i);
-  size_t nsub=indices.size();
-  if(indices.empty()) return true;
-  Eigen::MatrixXd Ssub(nsub,nsub);
-  Eigen::VectorXd fsub(nsub);
-  Eigen::VectorXd dAsub(nsub);
-  for(size_t i=0; i<nsub; i++) {
-    for(size_t j=0; j<nsub; j++) {
-      Ssub(i,j)=S_pc(indices[i],indices[j]);
-    }
-    fsub(i)=F_pc(indices[i]);
-  }
+  //for(size_t i=0; i<N; i++) if(F_pc(i)>1e-10) indices.push_back(i);
+  //size_t nsub=indices.size();
+  //if(indices.empty()) return true;
+  //Eigen::MatrixXd Ssub(nsub,nsub);
+  //Eigen::VectorXd fsub(nsub);
+  //Eigen::VectorXd dAsub(nsub);
+  //for(size_t i=0; i<nsub; i++) {
+  //  for(size_t j=0; j<nsub; j++) {
+  //    Ssub(i,j)=S_pc(indices[i],indices[j]);
+  //  }
+  //  fsub(i)=F_pc(indices[i]);
+  //}
     
 
   //std::cout << "----eigenvalues----" << std::endl;
@@ -226,104 +231,30 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
   //std::cout << F << std::endl;
   //std::cout << "----F_pc----" << std::endl;
   //std::cout << F_pc << std::endl;
-  if(indices.empty()) return true;
-  else {
-    dAsub=df*Ssub.inverse()*fsub;
-    for(size_t k=0; k<nsub; k++) {
-      _params[indices[k]].val=dAsub(k);
-    }
-  }
-  //if(fabs(S_pc.determinant())<1e-24) {
-  //  std::cout << "CONVERGED: S IS SINGULAR" << std::endl;
-  //  return true;
-  //}
+  //if(indices.empty()) return true;
   //else {
-  //  dA = df*S_pc.inverse()*F_pc;
-  //  for(size_t k=0; k<Np; k++) {
-  //    if(e(k)<1e-9) continue;
-  //    _params[k].val+=dA[k]/std::sqrt(S(k,k));
-  //  }  
-  //  for(size_t k=0; k<Nj; k++) {
-  //    if(fabs(F_pc[k+Np])<1e-5) continue;
-  //    _jsparams[k].val+=dA[k+Np]/std::sqrt(S(k+Np,k+Np));
+  //  dAsub=df*Ssub.inverse()*fsub;
+  //  for(size_t k=0; k<nsub; k++) {
+  //    _params[indices[k]].val=dAsub(k);
   //  }
-  //  return false;
   //}
+  if(fabs(S_pc.determinant())<1e-24) {
+    std::cout << "CONVERGED: S IS SINGULAR" << std::endl;
+    return true;
+  }
+  else {
+    dA = df*S_pc.inverse()*F_pc;
+    for(size_t k=0; k<Np; k++) {
+      if(e(k)<1e-6) continue;
+      _params[k].val+=dA[k]/std::sqrt(S(k,k));
+    }  
+    for(size_t k=0; k<Nj; k++) {
+      if(fabs(F_pc[k+Np])<1e-5) continue;
+      _jsparams[k].val+=dA[k+Np]/std::sqrt(S(k+Np,k+Np));
+    }
+    return false;
+  }
   return false;
-}
-
-size_t HeisenbergChainSimulator::_exchange(const size_t& i, const size_t& j) { 
-  int rpos1=i;
-  int rpos2=j;
-  int ds1;
-  int ds2;
-  size_t iexpos1, iexpos2, nexpos1, nexpos2, lindex1, lindex2;
-  // generate a random second position different from the first
-  do rpos2=(*_rpos)(_mteng); while(rpos2==rpos1);
-  if(_spinstate[rpos1]==1) {
-    iexpos1=rpos1;
-    nexpos1=rpos1+_size;
-    ds1=-2;
-  }
-  else {
-    iexpos1=rpos1+_size;
-    nexpos1=rpos1;
-    ds1=2;
-  }
-  if(_spinstate[rpos2]==1) {
-    iexpos2=rpos2;
-    nexpos2=rpos2+_size;
-    ds2=-2;
-  }
-  else {
-    iexpos2=rpos2+_size;
-    nexpos2=rpos2;
-    ds2=2;
-  }
-  lindex1=_operslist[iexpos1]-1;
-  lindex2=_operslist[iexpos2]-1;
-  double amp=fabs(_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
-        -_gmat(nexpos2, lindex1)*_gmat(nexpos1, lindex2));
-  double rnum=_rnum(_mteng);
-  if(rnum<amp*amp) {
-    // update stored state -----------------------------------------------------
-    _operslist[nexpos1]=_operslist[iexpos1];
-    _operslist[nexpos2]=_operslist[iexpos2];
-    _operslist[iexpos1]=0;
-    _operslist[iexpos2]=0;
-    _spinstate[rpos1]+=ds1;
-    _spinstate[rpos2]+=ds2;
-    // update Green's function matrix ------------------------------------------
-    Eigen::MatrixXcd newgmat(2*_size, _size);
-    std::complex<double> d11=_gmat(nexpos1, lindex1);
-    std::complex<double> d12=_gmat(nexpos1, lindex2);
-    std::complex<double> d21=_gmat(nexpos2, lindex1);
-    std::complex<double> d22=_gmat(nexpos2, lindex2);
-    //for(size_t i=0; i<2*_size; i++) 
-    //for(size_t j=0; j<_size; j++) {
-    //  std::complex<double> n1=_gmat(i, lindex1);
-    //  std::complex<double> n2=_gmat(i, lindex2);
-    //  std::complex<double> p1=_gmat(nexpos1, j);
-    //  std::complex<double> p2=_gmat(nexpos2, j);
-    //  std::complex<double> id1=0, id2=0;
-    //  if(lindex1==j) id1=1.0; 
-    //  if(lindex2==j) id2=1.0;
-    //  if(fabs(n1)<1e-12) {
-    //    d11=1;
-    //    d12=1;
-    //  }
-    //  if(fabs(n2)<1e-12) {
-    //    d21=1;
-    //    d22=1;
-    //  }
-    //  newgmat(i,j) = _gmat(i,j) -(n1/d11)*(p1-id1)-(n1/d12)*(p2-id2)
-    //                            -(n2/d21)*(p1-id1)-(n2/d22)*(p2-id2); 
-    //}
-    //_gmat=newgmat;
-    _reinitgmat();
-    return 1;
-  }
-  return 0;
 }
 
 size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
@@ -349,15 +280,15 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   }
   // ---------------------------------------------------------------------------
   double dj=0.0;
-  double newjsf;
-  for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
-    size_t dr=it->space;
-    size_t rl=(rpos+(_size-dr))%_size;
-    size_t rr=(rpos+(_size+dr))%_size;
-    double v=it->val;
-    dj+=0.25*(double)(_spinstate[rl]+_spinstate[rr])*v*(double)ds;
-  }
-  newjsf=_jsf*std::exp(dj);
+  //double newjsf;
+  //for(auto it=_jsparams.begin(); it!=_jsparams.end(); it++) {
+  //  size_t dr=it->space;
+  //  size_t rl=(rpos+(_size-dr))%_size;
+  //  size_t rr=(rpos+(_size+dr))%_size;
+  //  double v=it->val;
+  //  dj+=0.25*(double)(_spinstate[rl]+_spinstate[rr])*v*(double)ds;
+  //}
+  //newjsf=_jsf*std::exp(dj);
   // ---------------------------------------------------------------------------
   
   // accept flip according to Green's function ---------------------------------
@@ -385,7 +316,7 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     // -------------------------------------------------------------------------    
 
     // update Jastrow factor
-    _jsf=newjsf;
+    //_jsf=newjsf;
     _ffac = std::pow(-1.0, nferms)*_ffac;
     return 1;
   }
@@ -396,9 +327,9 @@ void HeisenbergChainSimulator::_sweep() {
   // flip until N electron moves have occured.
   // while(counter<_size) counter+=_flipspin();
   for(size_t i=0; i<_size; i++) {
-    int rpos=(*_rpos)(_mteng);
+    //int rpos=(*_rpos)(_mteng);
     size_t n=0;
-    n = _flipspin(rpos);
+    n = _flipspin(i);
   } 
   _reinitgmat();
 }

@@ -12,7 +12,7 @@ namespace AuxiliaryHamiltonians {
 class AuxiliaryHamiltonian {
   public:
     virtual void solve() = 0;
-    virtual void init(const AuxParamsSVec&) = 0;
+    virtual void init(const AuxParamSVec&) = 0;
     virtual Eigen::MatrixXcd get_reduced_matrix(const size_t&)=0;
 };
 

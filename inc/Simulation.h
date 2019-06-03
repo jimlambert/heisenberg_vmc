@@ -38,7 +38,6 @@ class HeisenbergChainSimulator {
     bool _updateparams(const double&); 
   public:
     
-    size_t _exchange(const size_t&, const size_t&); // flip two spins together
     size_t _flipspin(const size_t&); // single spin flip operation
     void _reinitgmat(); // reinitialize _gmat every sweep
     void _sweep();

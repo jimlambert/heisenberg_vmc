@@ -8,103 +8,20 @@ namespace AuxiliaryHamiltonians {
 HoppingHamiltonian::HoppingHamiltonian(
   const bool&          ti,
   const size_t&        n,
-  const AuxParamsSVec& params_vec
+  const AuxParamSVec&  params_vec
 ) : _trans_inv(ti), _size(n) {
   init(params_vec);
   solve();
 }
 
-void HoppingHamiltonian::init(const AuxParamsSVec& params_vec) {
+void HoppingHamiltonian::init(const AuxParamSVec& params_vec) {
   _hopping_matrix = Eigen::MatrixXcd::Zero(_size,_size);
-  for(auto it=params_vec.begin(); it!=params_vec.end(); it++) 
-  switch((*it)->get_type()) {
-    case Parameters::JASTROW: // ignore jastrow parameters
-      continue; 
-      break;
-    case Parameters::AUXILIARY: 
-      switch((*it)->get_subtype()) {
-        case Parameters::ONSITE:
-          if(_trans_inv) 
-            for(size_t r=0; r<_size; r++) _hopping_matrix(r,r)+=(*it)->val;
-          else {
-            size_t r=(*it)->site_i;
-            _hopping_matrix(r,r)+=(*it)->val;
-          }
-          break; // case Parameters::ONSITE
-        case Parameters::HOPPING:  
-          if(_trans_inv) {
-            size_t dr=((*it)->site_i)-((*it)->site_j);
-            for(size_t r=0; r<_size; r++) {
-              _hopping_matrix(r,(r+dr)%_size)+=(*it)->val;
-              _hopping_matrix((r+dr)%_size, r)=_hopping_matrix(r,(r+dr)%_size);
-            }
-          } 
-          else {
-            size_t ri=(*it)->site_i;
-            size_t rj=(*it)->site_j;
-            _hopping_matrix(ri,rj)=(*it)->val;
-          }
-          break; // case Parameters::HOPPING
-        default:
-          std::cout << "Invalid variational parameter." << std::endl;
-          std::cout << (*it)->name 
-                    << " is incompatible with hopping Hamiltonian"
-                    << std::endl;
-          exit(1);
-          break; // default
-      } // inner switch
-      break; // case Parameters::AUXILIARY
-  } // outer switch
 }
 
-void HoppingHamiltonian::set_vmats(const AuxParamsSVec& params_vec) {
-  for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
-    (*it)->vmat=Eigen::MatrixXd::Zero(_size,_size);
-    switch((*it)->get_type()) {
-      case Parameters::JASTROW: // ignore jastrow parameters
-        continue; 
-        break;
-      case Parameters::AUXILIARY: 
-        switch((*it)->get_subtype()) {
-          case Parameters::ONSITE:
-            if(_trans_inv) 
-            for(size_t r=0; r<_size; r++) {
-              (*it)->vmat(r,r)=1;
-            }
-            else {
-              size_t r=(*it)->site_i;
-              (*it)->vmat(r,r)=1;
-            }
-            break; // case Parameters::ONSITE
-          case Parameters::HOPPING:  
-            if(_trans_inv) {
-              size_t dr=((*it)->site_i)-((*it)->site_j);
-              for(size_t r=0; r<_size; r++) {
-                (*it)->vmat(r,(r+dr)%_size)=1;
-                (*it)->vmat((r+dr)%_size, r)=(*it)->vmat(r,(r+dr)%_size);
-              }
-            } 
-            else {
-              size_t ri=(*it)->site_i;
-              size_t rj=(*it)->site_j;
-              (*it)->vmat(ri,rj)=1;
-              (*it)->vmat(rj,ri)=(*it)->vmat(ri,rj);
-            }
-            break; // case Parameters::HOPPING
-          default:
-            std::cout << "Invalid variational parameter." << std::endl;
-            std::cout << (*it)->name 
-                      << " is incompatible with hopping Hamiltonian"
-                      << std::endl;
-            exit(1);
-            break; // default
-        } // inner switch
-        break; // case Parameters::AUXILIARY
-    } // outer switch
-  } // parameter loop
+void HoppingHamiltonian::set_vmats(const AuxParamSVec& params_vec) {
 }
 
-void HoppingHamiltonian::set_mmats(const AuxParamsSVec& params_vec) {
+void HoppingHamiltonian::set_mmats(const AuxParamSVec& params_vec) {
   Eigen::MatrixXcd U=_solver.eigenvectors();
   Eigen::VectorXd  e=_solver.eigenvalues();
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
