@@ -57,7 +57,13 @@ void BCSChainHamiltonian::setopers(ParamList_t& params) {
     for(size_t j=0; j<_L; j++)
       if((i>((_L/2)-1))&&(j<=((_L/2)-1))) Q(i,j)=UVU(i,j)/(e(j)-e(i));
     it->mmat=U*Q*(U.adjoint());
-  } 
+    //std::cout << it->name << std::endl;
+    //std::cout << "Q" << std::endl;
+    //std::cout << Q << std::endl;
+    //std::cout << "UVU" << std::endl;
+    //std::cout << UVU << std::endl;
+  }
+  //std::cout << "====================" << std::endl; 
 }
 
 Eigen::MatrixXcd BCSChainHamiltonian::get_reduced_matrix

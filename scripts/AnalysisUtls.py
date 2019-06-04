@@ -147,7 +147,7 @@ def PlotVarParams(head, data, defaultWidth, fs, ls, ms, x, y,
             if currPar >= nPar:
                 ax[i][j].axis('off')
             else:
-                ax[i][j].plot(nSteps, data[currPar], '.', markersize=ms)
+                ax[i][j].plot(nSteps, data[currPar], '-o', markersize=ms)
                 ax[i][j].set_xlabel("optimization step", fontsize=ls)
                 ax[i][j].set_ylabel(head[currPar], fontsize=ls)
                 ax[i][j].xaxis.set_minor_locator(minorLocator)

@@ -13,12 +13,12 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=4;
+  size_t L=22;
   size_t equil=10000;
   size_t simul=10000;
   size_t binsize=100;
   size_t vsteps = 50;
-  double df = 0.1;
+  double df = 0.2;
   double p1=0.5;
   double p2=0.5;
   double p3=0.5;
@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
   VMC::BCSVarParam onsite(1.0, 0, VMC::Onsite, 2*L, binsize, "onsite");
   VMC::BCSVarParam nnhop(2.0, 1, VMC::Hopping, 2*L, binsize, "nnhop");
   VMC::BCSVarParam ospair(0.5, 0, VMC::Pairing, 2*L, binsize, "ospair");
-  VMC::BCSVarParam nnpair(1.0, 1, VMC::Pairing, 2*L, binsize, "nnpair");
-  VMC::BCSVarParam nnnpair(2.0, 2, VMC::Pairing, 2*L, binsize, "nnnpair");
+  VMC::BCSVarParam nnpair(0.5, 1, VMC::Pairing, 2*L, binsize, "nnpair");
+  VMC::BCSVarParam nnnpair(0.5, 2, VMC::Pairing, 2*L, binsize, "nnnpair");
   VMC::BCSVarParam nnnnpair(0.5, 3, VMC::Pairing, 2*L, binsize, "nnnnpair");
   // ---------------------------------------------------------------------------
   
@@ -40,11 +40,11 @@ int main(int argc, char* argv[]) {
   VMC::JastrowParam nnnnjastrow(-0.1, 3, binsize, "nnnnJastrow");
   // ---------------------------------------------------------------------------
   
-  params.push_back(onsite);
+  //params.push_back(onsite);
   params.push_back(nnhop);
   //params.push_back(ospair);
   params.push_back(nnpair);
-  //params.push_back(nnnpair);
+  params.push_back(nnnpair);
   params.push_back(nnnnpair);
   //jsparams.push_back(nnjastrow);
   //jsparams.push_back(nnnjastrow);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
   //simulator.print_spinstate();
   //simulator.print_operslist();
   //std::cout << simulator._heisenergy() << std::endl;
-  simulator.optimize(vsteps, equil, simul, df, "./n4_optvals_ising"); 
+  simulator.optimize(vsteps, equil, simul, df, "../dat/n4_optvals_ising"); 
   simulator.print_params();  
   return 0;
 }
