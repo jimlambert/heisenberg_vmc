@@ -162,9 +162,8 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
     // Loop for BCS forces -----------------------------------------------------
     std::complex<double> total=0.0;
     std::complex<double> avea=_params[ka].lmeas.ave();
-    std::complex<double> avee=_el.ave();
     for(size_t i=0; i<na; i++) 
-      total+=std::conj(_el[i]-avee)*(_params[ka].lmeas[i] - avea);
+      total+=std::conj(_el[i])*(_params[ka].lmeas[i] - avea);
     F(ka)= -2.0*total.real()/(double)na;
   }
   
@@ -190,81 +189,48 @@ bool HeisenbergChainSimulator::_updateparams(const double& df) {
   }   
 
   // preconditioning -----------------------------------------------------------
-  Eigen::MatrixXd S_pc(N,N);
-  Eigen::VectorXd F_pc(N); 
-  for(size_t ka=0; ka<N; ka++) {
-    F_pc(ka)=F(ka)/std::sqrt(S(ka,ka));
-    //if(fabs(F(ka)) < 1e-5) F_pc(ka) = 0;
-    for(size_t kb=0; kb<N; kb++) {
-      S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
-      if(ka==kb) S_pc(ka,kb)+=1e-3;
-    }
-  }
-  // ---------------------------------------------------------------------------
-  //Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solveS;
-  //solveS.compute(S);
-  //std::vector<size_t> indices;
-  //Eigen::MatrixXd U=solveS.eigenvectors();
-  //Eigen::VectorXd e=solveS.eigenvalues();
-  //Eigen::MatrixXd Sinv(N,N);
-  //Eigen::MatrixXd Smid=Eigen::MatrixXd::Zero(N,N);
-  //for(size_t i=0; i<N; i++) {
-  //  if(e(i)<1e-6) Smid(i,i)=0;
-  //  else          Smid(i,i)=1/(e(i));
-  //}
-  //Sinv=U*Smid*U.inverse();
-  
-  //std::ofstream energy_shift;
-  //std::string   fenerg_shift="e_shift.dat";
-  //energy_shift.open(fenerg_shift); 
-  //double dEA=-1.0*df*F_pc.transpose()*S_pc.inverse()*F_pc;
-  //double dEB=-1.0*df*F.transpose()*S.inverse()*F;
-  //std::cout << "dE:" << '\t' << dEA << std::endl;
-  //std::cout << dEB << std::endl;
-  //if(dEA>0) {
-  //  std::cout << "Energy increase" << std::endl;
-  //  exit(1);
-  //}
-  //energy_shift.close();
-  //std::cout << "----eigenvalues----" << std::endl;
-  //std::cout << solveS.eigenvalues() << std::endl;
-  //std::cout << "----S----" << std::endl;
-  //std::cout << S << std::endl;
-  //std::cout << "----S_pc----" << std::endl;
-  //std::cout << S_pc << std::endl;
-  //std::cout << "----S_pc.inverse()----" << std::endl;
-  //std::cout << S_pc.inverse() << std::endl;
-  //std::cout << "----F----" << std::endl;
-  //std::cout << F << std::endl;
-  //std::cout << "----F_pc----" << std::endl;
-  //std::cout << F_pc << std::endl;
-  //if(indices.empty()) return true;
-  //else {
-  //  dAsub=df*Ssub.inverse()*fsub;
-  //  for(size_t k=0; k<nsub; k++) {
-  //    _params[indices[k]].val=dAsub(k);
+  //Eigen::MatrixXd S_pc(N,N);
+  //Eigen::VectorXd F_pc(N); 
+  //for(size_t ka=0; ka<N; ka++) {
+  //  F_pc(ka)=F(ka)/std::sqrt(S(ka,ka));
+  //  if(fabs(F(ka)) < 1e-6) F_pc(ka) = 0;
+  //  for(size_t kb=0; kb<N; kb++) {
+  //    S_pc(ka,kb)=S(ka,kb)/(std::sqrt(S(ka,ka)*S(kb,kb)));
+  //    //if(ka==kb) S_pc(ka,kb)=1+1e-3;
   //  }
   //}
-  if(fabs(S_pc.determinant())<1e-24) {
-    std::cout << "CONVERGED: S IS SINGULAR" << std::endl;
-    return true;
+  // ---------------------------------------------------------------------------
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solveS;
+  solveS.compute(S);
+  Eigen::VectorXd e=solveS.eigenvalues();
+  Eigen::MatrixXd U=solveS.eigenvectors();
+  std::vector<size_t> keep_indices;
+  for(size_t i=0; i<N; i++) {
+    if(e(i)>1e-3) keep_indices.push_back(i);
   }
-  else {
-    dA = df*S_pc.inverse()*F_pc;
-    //dA=df*Sinv*F_pc;
-    for(size_t k=0; k<Np; k++) {
-      if(fabs(S(k,k))<1e-4) {
-      //  std::cout << k << " : " << fabs(S(k,k)) << std::endl;
-      //  continue;
-      //};
-      _params[k].val+=dA[k]/std::sqrt(S(k,k));
-    }  
-    for(size_t k=0; k<Nj; k++) {
-      if(fabs(F_pc[k+Np])<1e-5) continue;
-      _jsparams[k].val+=dA[k+Np]/std::sqrt(S(k+Np,k+Np));
+  size_t Nnew=keep_indices.size();
+  if(Nnew==0) return true; 
+  Eigen::MatrixXd Snew(Nnew,Nnew);
+  Eigen::VectorXd Fnew(Nnew);
+  for(size_t i=0; i<Nnew; i++) {
+    size_t i_index=keep_indices[i];
+    for(size_t j=0; j<Nnew; j++) {
+      size_t j_index=keep_indices[j];
+      Snew(i,j)=S(i_index, j_index);
     }
-    return false;
+    Fnew(i)=F(keep_indices[i]);
   }
+  //dA = df*S_pc.inverse()*F_pc;
+  dA = df*Snew.inverse()*Fnew;
+  for(size_t k=0; k<Nnew; k++) {
+    //if(fabs(S(k,k))<1e-3) continue;
+    //_params[k].val+=dA[k]/std::sqrt(S(k,k));
+    _params[keep_indices[k]].val+=dA[k];
+  }  
+  //for(size_t k=0; k<Nj; k++) {
+  //  if(fabs(F_pc[k+Np])<1e-5) continue;
+  //  _jsparams[k].val+=dA[k+Np]/std::sqrt(S(k+Np,k+Np));
+  //}
   return false;
 }
 
@@ -304,8 +270,9 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
   
   // accept flip according to Green's function ---------------------------------
   lindex=_operslist[iexpos]-1;
-  double amp=(std::exp(dj))*fabs(_gmat(nexpos, lindex));
-  double rnum = _rnum(_mteng);
+  //double amp=(std::exp(dj))*fabs(_gmat(nexpos, lindex));
+  double amp=fabs(_gmat(nexpos, lindex));
+  double rnum=_rnum(_mteng);
    
   if(rnum<amp*amp){
     // swap operator positions and update spin state
@@ -325,7 +292,6 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
     }
     _gmat=newgmat;
     // -------------------------------------------------------------------------    
-
     // update Jastrow factor
     //_jsf=newjsf;
     _ffac = std::pow(-1.0, nferms)*_ffac;
@@ -337,10 +303,10 @@ size_t HeisenbergChainSimulator::_flipspin(const size_t& rpos) {
 void HeisenbergChainSimulator::_sweep() {
   // flip until N electron moves have occured.
   // while(counter<_size) counter+=_flipspin();
-  for(size_t i=0; i<_size; i++) {
-    //int rpos=(*_rpos)(_mteng);
+  for(size_t i=0; i<2*_size; i++) {
+    int rpos=(*_rpos)(_mteng);
     size_t n=0;
-    n = _flipspin(i);
+    n = _flipspin(rpos);
   } 
   _reinitgmat();
 }
@@ -367,6 +333,10 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       size_t iexpos2=j+_size;   
       size_t nexpos1=i+_size;   
       size_t nexpos2=j;   
+      //size_t iexpos1=i;   
+      //size_t iexpos2=j+_size;   
+      //size_t nexpos1=j;   
+      //size_t nexpos2=i+_size;   
       size_t lindex1=_operslist[iexpos1]-1;
       size_t lindex2=_operslist[iexpos2]-1;
       std::complex<double> det=_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
@@ -384,7 +354,9 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
         if(rj!=i) jsum+=0.25*v*(_spinstate[rj]+_spinstate[lj])*(-2.0);
         else jsum+=0.25*v*_spinstate[lj]*(-2.0);
       }
-      det = std::exp(jsum)*det;
+      //std::cout << "up-down to down-up" << std::endl;
+      //std::cout << det << std::endl;
+      //det = std::exp(jsum)*det;
       total -= 0.5 * det; 
     }
     else {
@@ -392,6 +364,10 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
       size_t iexpos2=j;   
       size_t nexpos1=i;   
       size_t nexpos2=j+_size;   
+      //size_t iexpos1=i+_size;   
+      //size_t iexpos2=j;   
+      //size_t nexpos1=j+_size;   
+      //size_t nexpos2=i;   
       size_t lindex1=_operslist[iexpos1]-1;
       size_t lindex2=_operslist[iexpos2]-1;
       std::complex<double> det=_gmat(nexpos1, lindex1)*_gmat(nexpos2, lindex2)
@@ -409,7 +385,9 @@ std::complex<double> HeisenbergChainSimulator::_heisenergy() {
         if(rj!=i) jsum+=0.25*v*(_spinstate[rj]+_spinstate[lj])*(-2.0);
         else jsum+=0.25*v*_spinstate[lj]*(-2.0);
       }
-      det = std::exp(jsum)*det;
+      //det = std::exp(jsum)*det;
+      //std::cout << "down-up to up-down" << std::endl;
+      //std::cout << det << std::endl;
       total -= 0.5 * det;
     }
   }
@@ -516,6 +494,7 @@ void HeisenbergChainSimulator::optimize
     var_params << '\n';
     std::cout << "reinitialzing auxiliary Hamiltonian" << std::endl;
     _auxham.init(_params);
+    _reinitgmat();
   }
   // ---------------------------------------------------------------------------
   var_params.close();

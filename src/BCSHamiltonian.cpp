@@ -11,32 +11,8 @@ BCSChainHamiltonian::BCSChainHamiltonian
 
 void BCSChainHamiltonian::init(ParamList_t& params) {
   _bcsmatrix = Eigen::MatrixXcd::Zero(_L, _L);
-  for(auto it=params.begin(); it!=params.end(); it++)
-  switch(it->type) { 
-    case Onsite:
-      for(size_t i=0; i<_L; i++) {
-        if(i<(_L/2)) _bcsmatrix(i, i)=-1.0*it->val;
-        else _bcsmatrix(i, i)=it->val;
-      }
-      break;
-    case Hopping:
-      for(size_t i=0; i<_L; i++){
-        if(i<(_L/2)) {
-          _bcsmatrix(i, (i+it->space)%(_L/2))+=it->val;
-          _bcsmatrix((i+it->space)%(_L/2), i)+=it->val;
-        } 
-        else {
-          _bcsmatrix(i, (i+it->space)%(_L/2)+_L/2)+=-1.0*it->val;
-          _bcsmatrix((i+it->space)%(_L/2)+_L/2, i)+=-1.0*it->val;
-        } 
-      }
-      break;
-    case Pairing:
-      for(size_t i=0; i<_L/2; i++) {
-        _bcsmatrix(i, (i+it->space)%(_L/2)+_L/2)+=it->val;
-        _bcsmatrix((i+it->space)%(_L/2)+_L/2, i)+=std::conj(it->val);
-      }
-      break;
+  for(auto it=params.begin(); it!=params.end(); it++) {
+    _bcsmatrix+=(it->val)*(it->vmat); 
   }
   _solver.compute(_bcsmatrix);
   setopers(params);
