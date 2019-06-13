@@ -13,15 +13,21 @@ struct AuxiliaryParameter : Parameter {
   ParameterSubtype        subtype;       
   Eigen::MatrixXd         vmat;
   Eigen::MatrixXcd        mmat;
+  bool                    vinit; // set true when vmat initialized
+  bool                    minit; // set true when mmat initialized
   AuxiliaryParameter(
     ParameterSubtype   apt, // auxiliary parameter type
     const std::string& n,   // parameter name 
     const double&      v,   // value of parameter
-    const size_t&      si,  // parameter site i
-    const size_t&      sj,  // parameter site j
+    const size_t&      s,   // parameter site 
+    const size_t&      d,   // change in position
     const bool&        ti,  // translation invariant (true)
     const size_t&      bs   // binsize for local_meas 
-  ) : Parameter(AUXILIARY, n, v, si, sj, ti, bs), subtype(apt)  {}
+  ) : Parameter(AUXILIARY, n, v, s, d, ti, bs), 
+      subtype(apt), 
+      vinit(false), 
+      minit(false)
+  {}
   ParameterSubtype get_subtype() {return subtype;}
   void operator() (BasisState&);
 };

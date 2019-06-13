@@ -15,12 +15,13 @@ struct JastrowParameter : Parameter {
     ParameterSubtype   jpt, // subtype for Jastrow parameter
     const std::string& n,   // parameter name 
     const double&      v,   // value of parameter
-    const size_t&      si,  // parameter site i
-    const size_t&      sj,  // parameter site j
+    const size_t&      s,   // parameter site 
+    const size_t&      d,   // change in position
     const bool&        ti,  // translation invariant (true)
     const size_t&      bs   // binsize for local_meas 
-  ) : Parameter(JASTROW, n, v, si, sj, ti, bs), subtype(jpt) {}
+  ) : Parameter(JASTROW, n, v, s, d, ti, bs), subtype(jpt) {}
   ParameterSubtype get_subtype() {return subtype;}
+  void operator()(BasisState&);
 };
 
 // =============================================================================

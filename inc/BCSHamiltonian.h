@@ -44,6 +44,7 @@ class BCSChainHamiltonian {
     Eigen::MatrixXcd get_eigenvecs(){return _solver.eigenvectors();}
     Eigen::MatrixXd get_eigenvals(){return _solver.eigenvalues();}
 };
-}
+
+} // namespace VMC
 
 #endif // BCS_HAMILTONIAN

@@ -13,9 +13,9 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=24;
-  size_t equil=10000;
-  size_t simul=30000;
+  size_t L=10;
+  size_t equil=2000;
+  size_t simul=10000;
   size_t binsize=100;
   size_t vsteps = 50;
   double df = 0.05;
@@ -29,9 +29,9 @@ int main(int argc, char* argv[]) {
   VMC::BCSVarParam onsite(1.0, 0, VMC::Onsite, 2*L, binsize, "onsite");
   VMC::BCSVarParam nnhop(1.0, 1, VMC::Hopping, 2*L, binsize, "nnhop");
   VMC::BCSVarParam ospair(0.5, 0, VMC::Pairing, 2*L, binsize, "ospair");
-  VMC::BCSVarParam nnpair(0.75, 1, VMC::Pairing, 2*L, binsize, "nnpair");
-  VMC::BCSVarParam nnnpair(0.5, 2, VMC::Pairing, 2*L, binsize, "nnnpair");
-  VMC::BCSVarParam nnnnpair(0.75, 3, VMC::Pairing, 2*L, binsize, "nnnnpair");
+  VMC::BCSVarParam nnpair(0.001, 1, VMC::Pairing, 2*L, binsize, "nnpair");
+  VMC::BCSVarParam nnnpair(0.027, 2, VMC::Pairing, 2*L, binsize, "nnnpair");
+  VMC::BCSVarParam nnnnpair(-0.02, 3, VMC::Pairing, 2*L, binsize, "nnnnpair");
   // ---------------------------------------------------------------------------
   
   // Jastrow parameters --------------------------------------------------------

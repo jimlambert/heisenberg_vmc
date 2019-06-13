@@ -59,7 +59,7 @@
 //    constructed. 
 //      In the case of the Onsite parameter there is a redundant member variable,
 //    since such a parameter only acts on one particular position. In such 
-//    cases it is convention to use site_i in the code as the variable defining 
+//    cases it is convention to use site in the code as the variable defining 
 //    the site on which this parameter acts.
 //  
 //  JastrowParameter
@@ -91,23 +91,23 @@ struct Parameter {
   ParameterType           type;
   std::string             name;
   std::complex<double>    val;
-  size_t                  site_i;
-  size_t                  site_j;
+  size_t                  site;
+  size_t                  dr;
   bool                    trans_inv; 
   MeasCd                  local_meas;
   Parameter(
     ParameterType      pt, // set parameter type
     const std::string& n,  // parameter name 
     const double&      v,  // value of parameter
-    const size_t&      si, // parameter site i
-    const size_t&      sj, // parameter site j
+    const size_t&      s,  // parameter site 
+    const size_t&      d,  // range of interaction
     const bool&        ti, // translation invariant (true)
     const size_t&      bs  // binsize for local_meas 
   ) : type(pt), 
       name(n), 
       val(v), 
-      site_i(si), 
-      site_j(sj), 
+      site(s), 
+      dr(d), 
       trans_inv(ti),
       local_meas(bs) 
   {}
