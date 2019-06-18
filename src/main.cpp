@@ -24,7 +24,7 @@ using VMC::Parameters::SPIN;
 int main(int argc, char* argv[]) {
 
   
-  size_t L=6;
+  size_t L=4;
   double df=0.1;
   VMC::ParamListUPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
 
@@ -33,8 +33,11 @@ int main(int argc, char* argv[]) {
   par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.3, 0, 2, true, 100);
   par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
   par_lst_ptr->build_aux_param(HOPPING, "hop4", 0.3, 0, 4, true, 100);
-  par_lst_ptr->report_aux_params(); 
-
+  par_lst_ptr->build_jas_param(SPIN, "spin1", 1.0, 0, 1, true, 100);
+  par_lst_ptr->build_jas_param(SPIN, "spin2", 1.0, 0, 2, true, 100);
+  par_lst_ptr->report_aux_params();
+  par_lst_ptr->report_jas_params(); 
+ 
   VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
                         ("Ising Energy", 100, 1.0); 
 

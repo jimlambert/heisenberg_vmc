@@ -34,20 +34,19 @@ class BasisState {
     
     BasisState(const size_t&);
     size_t find (const size_t&) const; // method returns position of lindex
- 
-    // access operators for spin state
-    // -----------------------------------------------------------------------
+    void refresh(); // resest lists to have all zeros
+
+    // access for spin state ---------------------------------------------------
     stateref_t       operator [](const sindex_t& i) {return _spinstate[i];}
     const_stateref_t operator [](const sindex_t& i) const 
       {return _spinstate[i];} 
-    // -----------------------------------------------------------------------   
-    // access operators for operator list
-    // -----------------------------------------------------------------------
+    // access for operator list ------------------------------------------------
     listref_t        operator ()(const lindex_t& i) {return _operslist[i];}
     const_listref_t  operator ()(const lindex_t& i) const 
       {return _operslist[i];}
-    // -----------------------------------------------------------------------
-    size_t size() const {return _size;} 
+    
+    // access for members ------------------------------------------------------
+    size_t size() const {return _size;}
 };
 
 // =============================================================================

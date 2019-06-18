@@ -6,6 +6,7 @@
 
 #define TERM_COLUMN_WIDTH 15
 #define INDENT_WIDTH 2
+#define STATE_WIDTH 4
 
 // =============================================================================
 

@@ -48,15 +48,16 @@ SpinWavefunction::SpinWavefunction (
 // setup functions -------------------------------------------------------------
 
 void SpinWavefunction::_init_state() {
+  _state.refresh();  
   for(size_t i=0; i<_size; i++) {
     double r=_rnum(_mteng);
     if(r<0.5) {
       _state[i]=1;
-      _state(i)=i;
+      _state(i)=i+1;
     }
     else {
       _state[i]=-1;
-      _state(i)=i+1;
+      _state(i+_size)=i+1;
     }
   } 
 }
@@ -67,9 +68,11 @@ void SpinWavefunction::_compute_jas_sum() {
     size_t dr=_par_lst_ptr->jas(i).dr;
     std::complex<double> v=_par_lst_ptr->jas(i).val;
     for(size_t r=0; r<_size; r++) {
-      _jas_sum+=v.real()*_state[r]*_state[r+dr]; 
+      _jas_sum+=v.real()*_state[r]*_state[(r+dr)%_size]; 
     }
-  } 
+  }
+  std::cout << _jas_sum << std::endl;
+  print_state(); 
 }
 
 // update functions ------------------------------------------------------------
@@ -94,7 +97,17 @@ void SpinWavefunction::_flipspin(const size_t& r) {
 // output functions ------------------------------------------------------------
 
 void SpinWavefunction::print_state() {
-  
+  std::cout << "Spin state:" << std::endl;
+  for(size_t i=0; i<_size; i++) 
+   std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
+             << _state[i];
+  std::cout << std::endl; 
+  std::cout << "Operator list:" << std::endl;
+  for(size_t i=0; i<2*_size; i++) 
+    std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
+              << _state(i);
+  std::cout << std::endl;
+
 }
 
 } // namespace VMC

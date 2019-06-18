@@ -14,4 +14,9 @@ size_t BasisState::find(const size_t& lindex) const {
   return std::distance(start, std::find(start, end, lindex+1)); 
 }  
 
+void BasisState::refresh() {
+  std::fill(_spinstate.begin(), _spinstate.end(), 0);
+  std::fill(_operslist.begin(), _operslist.end(), 0);
+}
+
 }
