@@ -1,7 +1,7 @@
 # Simple Makefile
 MAIN = HEIS_VMC
 CXX = g++ 
-CXX_FLAGS = -std=c++14 -O3 -Wall -fPIC -Wextra -lboost_program_options -lboost_system
+CXX_FLAGS = -std=c++17 -O2 -Wall -fPIC -Wextra -lboost_program_options -lboost_system
 CPP_FILES = $(wildcard src/*.cpp)
 OBJ_FILES = $(addprefix obj/, $(notdir $(CPP_FILES:.cpp=.o)))
 INCLUDE = -I./inc/ -I/usr/include/eigen3/

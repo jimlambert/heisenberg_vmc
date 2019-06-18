@@ -9,14 +9,9 @@ namespace AuxiliaryHamiltonians {
 // Private Members
 // ============================================================================= 
   
-void HoppingChainHamiltonian::_check_init(const AuxParamUPtr& aux_ptr) {
+void HoppingChainHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
   if(!(aux_ptr->vinit)) {
     std::cout << "Parameter " << aux_ptr->name << " has unitialized vmatrix" 
-              << std::endl;
-    exit(1);
-  }
-  if(!(aux_ptr->minit)) {
-    std::cout << "Parameter " << aux_ptr->name << " has unitialized mmatrix" 
               << std::endl;
     exit(1);
   }
@@ -29,16 +24,18 @@ void HoppingChainHamiltonian::_check_init(const AuxParamUPtr& aux_ptr) {
 HoppingChainHamiltonian::HoppingChainHamiltonian(
   const bool&          b,
   const size_t&        n,
-  const AuxParamUVec&  params_vec
+  AuxParamUVec&  params_vec
 ) : _bc(b), _size(n) {
+  set_vmats(params_vec);
   init(params_vec);
   solve();
+  set_mmats(params_vec);
 }
 
 void HoppingChainHamiltonian::init(const AuxParamUVec& params_vec) {
   _hopping_matrix = Eigen::MatrixXcd::Zero(_size,_size);
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
-    _check_init((*it));  
+    _check_vmat_init((*it));  
     _hopping_matrix+=((*it)->val)*((*it)->vmat);
   }
 }
@@ -49,40 +46,42 @@ void HoppingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
     (*it)->vmat=Eigen::MatrixXd::Zero(_size,_size);
     switch((*it)->subtype) {
       case Parameters::ONSITE: 
-        {
+      {
         if(ti) for(size_t i=0; i<_size; i++) (*it)->vmat(i,i)=1;
         else {
           size_t r=(*it)->site;
           (*it)->vmat(r,r)+=1;
         }
-        }
+      }
       break; // case ONSITE
       case Parameters::HOPPING:
-        {
+      {
         size_t r=(*it)->site;
         size_t dr=(*it)->dr;
         if(ti) {
           for(size_t i=0; i<_size; i++) {
             double bfactor=1.0;
             size_t j=(i+dr)%_size;
-            if(((i+dr)>_size) && !_bc) bfactor=-1.0; 
+            if(((i+dr)>=_size) && !_bc) bfactor=-1.0; 
             (*it)->vmat(i,j)+=bfactor;
+            (*it)->vmat(j,i)+=bfactor;
           }
         }
         else {
           size_t l=(r+dr)%_size;
           double bfactor=1.0;
-          if(((r+dr)>_size) && !_bc) bfactor=-1.0; 
+          if(((r+dr)>=_size) && !_bc) bfactor=-1.0; 
           (*it)->vmat(r,l)+=bfactor;
+          (*it)->vmat(l,r)+=bfactor;
         }
-        }
+      }
       break; // case Hopping
       default:
-        {
+      {
         std::cout << "Forbidden parameter type for " << (*it)->name 
                   << std::endl;
         exit(1);
-        }
+      }
       break; // case default
     } // subtype switch
     (*it)->vinit=true;

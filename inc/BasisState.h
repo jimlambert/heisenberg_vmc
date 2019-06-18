@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// CLASS: BASISSTATE
-// -----------------------------------------------------------------------------
-// BasisState class for VMC algorithm. This class wraps to basis vectors,
-// _spinstate, and _operslist. _spinstate is accessed by [], and _operslist is
-// accessed by ().
-// -----------------------------------------------------------------------------
 
 #ifndef BASISSTATE_H
 #define BASISSTATE_H
@@ -14,8 +7,12 @@
 #include<Eigen/Dense>
 
 namespace VMC {
+
+// BasisState class
+// =============================================================================
   
 class BasisState {
+  
   typedef std::vector<int> state_t;
   typedef state_t::reference stateref_t;
   typedef state_t::const_reference const_stateref_t;
@@ -24,6 +21,7 @@ class BasisState {
   typedef list_t::reference listref_t;
   typedef list_t::const_reference const_listref_t;
   typedef list_t::size_type lindex_t;
+  
   private:
     size_t            _size;      // system size in reduced bases
     state_t           _spinstate; // spin state in the S_z basis
@@ -49,6 +47,8 @@ class BasisState {
     size_t size() {return _size;} 
     Eigen::MatrixXcd* gmat_ptr() {return _gmat_ptr;}
 };
+
+// =============================================================================
 
 } // VMC namespace
 

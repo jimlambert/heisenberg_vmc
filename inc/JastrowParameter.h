@@ -1,5 +1,5 @@
-#ifndef JASTROW_PARAMERTER_H
-#define JASTROW_PARAMERTER_H
+#ifndef JASTROW_PARAMETER_H
+#define JASTROW_PARAMETER_H
 
 #include "AbstractParameter.h"
 
@@ -21,7 +21,6 @@ struct JastrowParameter : Parameter {
     const size_t&      bs   // binsize for local_meas 
   ) : Parameter(JASTROW, n, v, s, d, ti, bs), subtype(jpt) {}
   ParameterSubtype get_subtype() {return subtype;}
-  void operator()(BasisState&);
 };
 
 // =============================================================================
@@ -36,6 +35,8 @@ typedef std::shared_ptr<Parameters::JastrowParameter> JasParamSPtr;
 typedef std::vector<JasParamUPtr>                     JasParamUVec;
 typedef std::vector<JasParamSPtr>                     JasParamSVec;
 
+// =============================================================================
+
 } // namespace VMC 
 
-#endif // JASTROW_PARAMERTER_H
+#endif // JASTROW_PARAMETER_H

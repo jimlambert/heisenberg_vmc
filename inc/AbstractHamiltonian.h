@@ -1,6 +1,7 @@
 #ifndef ABSTRACT_HAMILTONIAN_H
 #define ABSTRACT_HAMILTONIAN_H
 
+#include <memory>
 #include "AuxiliaryParameter.h"
 
 namespace VMC {
@@ -11,14 +12,23 @@ namespace AuxiliaryHamiltonians {
 
 class AuxiliaryHamiltonian {
   public:
-    virtual void solve() = 0;
-    virtual void init(const AuxParamSVec&) = 0;
+    virtual void solve()=0;
+    virtual void set_vmats(AuxParamUVec&)=0;
+    virtual void set_mmats(AuxParamUVec&)=0;
+    virtual void init(const AuxParamUVec&)=0;
     virtual Eigen::MatrixXcd get_reduced_matrix(const size_t&)=0;
+    virtual Eigen::MatrixXcd get_matrix()=0;
+    virtual Eigen::MatrixXcd get_eigenvectors()=0;
+    virtual Eigen::VectorXd  get_eigenvalues()=0;
 };
 
 // ============================================================================= 
 
-} // namespace AuxiliaryHamiltonian
+} // namespace AuxiliaryHamiltonians
+
+typedef AuxiliaryHamiltonians::AuxiliaryHamiltonian AuxHam;
+typedef std::unique_ptr<AuxiliaryHamiltonians::AuxiliaryHamiltonian> AuxHamUPtr;
+
 } // namespace VMC
 
 #endif // ABSTRACT_HAMILTONIAN_H

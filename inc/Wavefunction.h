@@ -21,10 +21,13 @@ namespace Wavefunctions {
 
 class Wavefunction {
   private:
-    ParameterList _param_list;
-    AuxHamPtr     _aux_ham;
-    BasisState    _state;              
+    size_t           _size; // size of the spin model we want to study
+    ParameterListPtr _param_list_ptr;
+    AuxHamUPtr       _aux_ham_ptr;
+    BasisState       _state;    
+    EnergyUPtr       _energy; 
   public:
+    Wavefunction(ParameterListPtr&, AuxHamUPtr);
 };
 
 
