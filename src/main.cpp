@@ -4,7 +4,10 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include "VarParam.h"
+#include "IsingChainEnergy.h"
+#include "Wavefunction.h"
 #include "HoppingChainHamiltonian.h"
+#include "BasisState.h"
 #include "ParameterList.h"
 #include "SpinSpin.h"
 #include "Simulation.h"
@@ -21,22 +24,37 @@ using VMC::Parameters::SPIN;
 int main(int argc, char* argv[]) {
 
   
-  VMC::ParamListPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
+  size_t L=6;
+  double df=0.1;
+  VMC::ParamListUPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
 
-  par_lst_ptr->build_aux_param(ONSITE, "onsite", 0.5, 0, 0, true, 100);  
-  par_lst_ptr->build_aux_param(HOPPING, "hop1", 0.1, 0, 1, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.2, 0, 2, true, 100);
-  //par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
-  par_lst_ptr->report_aux_params();  
-  
+  par_lst_ptr->build_aux_param(ONSITE, "onsite", 0.2, 0, 0, true, 100);  
+  par_lst_ptr->build_aux_param(HOPPING, "hop1", 0.3, 0, 1, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.3, 0, 2, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hop4", 0.3, 0, 4, true, 100);
+  par_lst_ptr->report_aux_params(); 
+
+  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
+                        ("Ising Energy", 100, 1.0); 
+
+  //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
+  //                            (true, 2*L, par_lst_ptr->aux_vec());
   VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
-                         (true, 4, par_lst_ptr->aux_vec());
-  cout << aux_ham_ptr->get_eigenvectors() << endl;
-  cout << aux_ham_ptr->get_eigenvalues() << endl;
-  for(size_t i=0; i<par_lst_ptr->naux(); i++) {
-    cout << par_lst_ptr->aux(i).mmat << endl;
-    cout << "----" << endl;
-  } 
+                              (true, 2*L, par_lst_ptr->aux_vec());
+  
+  VMC::Wavefunctions::SpinWavefunction test_wave_func
+  (
+    L, 
+    df, 
+    par_lst_ptr, 
+    aux_ham_ptr, 
+    enrg_ptr,
+    "varparams.dat",
+    "n6obsvals.dat"  
+  );
+  
+  
   //size_t L=10;
   //size_t equil=2000;
   //size_t simul=10000;

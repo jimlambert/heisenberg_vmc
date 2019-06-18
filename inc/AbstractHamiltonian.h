@@ -27,7 +27,8 @@ class AuxiliaryHamiltonian {
 } // namespace AuxiliaryHamiltonians
 
 typedef AuxiliaryHamiltonians::AuxiliaryHamiltonian AuxHam;
-typedef std::unique_ptr<AuxiliaryHamiltonians::AuxiliaryHamiltonian> AuxHamUPtr;
+typedef std::unique_ptr<AuxHam>                     AuxHamUPtr;
+typedef std::shared_ptr<AuxHam>                     AuxHamSPtr;
 
 } // namespace VMC
 

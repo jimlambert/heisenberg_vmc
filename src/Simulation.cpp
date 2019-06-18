@@ -97,7 +97,7 @@ void HeisenbergChainSimulator::_genstate() {
     double r = _rnum(_mteng);
     if(r < 0.5) { 
       _spinstate[i] = 1;
-      _operslist[i] = i+1;
+      _operslist[i] = i;
     } 
     else {
       _spinstate[i] = -1;

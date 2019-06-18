@@ -2,6 +2,7 @@
 #define LOCAL_MEASUREMENT_H
 
 #include <vector>
+#include <iostream>
 
 namespace VMC {
 
@@ -90,6 +91,6 @@ class LocalMeasurement {
 typedef LocalMeasurement<std::complex<double> > MeasCd;
 typedef LocalMeasurement<double>                MeasD;
 
-}
+} // namespace VMC
 
 #endif // LOCAL_MEASUREMENT_H

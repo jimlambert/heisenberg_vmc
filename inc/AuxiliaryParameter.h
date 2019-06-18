@@ -29,7 +29,7 @@ struct AuxiliaryParameter : Parameter {
       minit(false)
   {}
   ParameterSubtype get_subtype() {return subtype;}
-  void operator() (BasisState&);
+  void operator() (BasisState&, Eigen::MatrixXcd&);
 };
 
 // =============================================================================

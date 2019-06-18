@@ -113,7 +113,7 @@ struct Parameter {
   {}
   ParameterType get_type() {return type;}
   virtual ParameterSubtype get_subtype()=0;
-  virtual void operator() (BasisState&)=0;
+  virtual void operator() (BasisState&, Eigen::MatrixXcd&)=0;
 };
 
 // =============================================================================

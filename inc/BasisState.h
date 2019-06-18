@@ -10,7 +10,11 @@ namespace VMC {
 
 // BasisState class
 // =============================================================================
-  
+// The only real point of having a separate class for this is that it keeps the
+// operlist and spinlist in the same place. Both of these things are initialized
+// by the wavefunction and whatever degrees of freedom you want are stored here.  
+// =============================================================================
+
 class BasisState {
   
   typedef std::vector<int> state_t;
@@ -26,11 +30,10 @@ class BasisState {
     size_t            _size;      // system size in reduced bases
     state_t           _spinstate; // spin state in the S_z basis
     list_t            _operslist; // positions of creation operators
-    Eigen::MatrixXcd* _gmat_ptr;  // pointer to current Greens function
   public:
     
     BasisState(const size_t&);
-    size_t find(const size_t&); // method returns position of lindex
+    size_t find (const size_t&) const; // method returns position of lindex
  
     // access operators for spin state
     // -----------------------------------------------------------------------
@@ -44,8 +47,7 @@ class BasisState {
     const_listref_t  operator ()(const lindex_t& i) const 
       {return _operslist[i];}
     // -----------------------------------------------------------------------
-    size_t size() {return _size;} 
-    Eigen::MatrixXcd* gmat_ptr() {return _gmat_ptr;}
+    size_t size() const {return _size;} 
 };
 
 // =============================================================================

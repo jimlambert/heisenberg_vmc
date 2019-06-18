@@ -27,10 +27,10 @@ class HoppingChainHamiltonian : public AuxiliaryHamiltonian {
     void set_vmats(AuxParamUVec&);
     void set_mmats(AuxParamUVec&);
     void init(const AuxParamUVec&);
-    Eigen::MatrixXcd get_reduced_matrix(const size_t&);
-    Eigen::MatrixXcd get_matrix(){return _hopping_matrix;}
-    Eigen::MatrixXcd get_eigenvectors(){return _solver.eigenvectors();}
-    Eigen::VectorXd  get_eigenvalues(){return _solver.eigenvalues();}
+    Eigen::MatrixXcd  get_reduced_matrix(const size_t&);
+    Eigen::MatrixXcd  get_matrix(){return _hopping_matrix;}
+    Eigen::MatrixXcd  get_eigenvectors(){return _solver.eigenvectors();}
+    Eigen::VectorXd   get_eigenvalues(){return _solver.eigenvalues();}
 };
 
 // ============================================================================= 
