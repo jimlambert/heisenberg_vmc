@@ -6,7 +6,7 @@
 namespace VMC {
 namespace Observables {
 
-struct IsingChainEnergy : public Observable {
+struct IsingChainEnergy : Observable {
   IsingChainEnergy(
     const std::string& n, 
     const size_t& bs, 

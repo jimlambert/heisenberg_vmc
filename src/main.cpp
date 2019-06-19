@@ -24,7 +24,7 @@ using VMC::Parameters::SPIN;
 int main(int argc, char* argv[]) {
 
   
-  size_t L=4;
+  size_t L=6;
   double df=0.1;
   VMC::ParamListUPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
 
@@ -41,15 +41,12 @@ int main(int argc, char* argv[]) {
   VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
                         ("Ising Energy", 100, 1.0); 
 
-  //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
-  //                            (true, 2*L, par_lst_ptr->aux_vec());
   VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
                               (true, 2*L, par_lst_ptr->aux_vec());
   
   VMC::Wavefunctions::SpinWavefunction test_wave_func
   (
     L, 
-    df, 
     par_lst_ptr, 
     aux_ham_ptr, 
     enrg_ptr,

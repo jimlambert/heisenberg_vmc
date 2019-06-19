@@ -18,7 +18,7 @@ struct SpinSpin : JastrowParameter {
     const bool&        ti, // translation invariant (true)
     const size_t&      bs  // binsize for local_meas 
   ) : JastrowParameter(SPIN, n, v, s, d, ti, bs) {}  
-  void operator() (BasisState&);
+  void operator() (BasisState&, Eigen::MatrixXcd&);
 };
 
 // =============================================================================

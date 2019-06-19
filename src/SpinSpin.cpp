@@ -3,7 +3,7 @@
 namespace VMC {
 namespace Parameters {
 
-void SpinSpin::operator() (BasisState& state) {
+void SpinSpin::operator() (BasisState& state, Eigen::MatrixXcd& gmat) {
   size_t size=state.size();  
   std::complex<double> total=0.0;
   if(trans_inv) {

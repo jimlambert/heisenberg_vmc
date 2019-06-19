@@ -4,7 +4,7 @@ namespace VMC {
 namespace Observables {
 
 void IsingChainEnergy::operator()(
-    const BasisState& state, 
+    const BasisState&       state, 
     const Eigen::MatrixXcd& gmat
   ) {
   std::complex<double> total=0.0;

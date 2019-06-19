@@ -30,14 +30,13 @@ namespace Wavefunctions {
 class SpinWavefunction {
   private: 
     // random number stuff -----------------------------------------------------
-    std::random_device _rd;
-    std::mt19937      _mteng{_rd()};
-    std::uniform_real_distribution<double> _rnum{0.0, 1.0};
-    std::uniform_int_distribution<int>*    _rpos;
+    std::random_device                     _rd;
+    std::mt19937                           _mteng{_rd()};
+    std::uniform_real_distribution<double> _rand_num{0.0, 1.0};
+    std::uniform_int_distribution<int>*    _rand_pos;
 
     // member variables --------------------------------------------------------
     size_t            _size; // size of the spin model
-    double            _delta; // change in variational parameters
     double            _jas_sum; // running total of Jastrow factors 
     Eigen::MatrixXcd  _gmat; // Green's function matrix 
     ParamListUPtr     _par_lst_ptr; // pointer to parameter list
@@ -46,25 +45,27 @@ class SpinWavefunction {
     ObsUVec           _obsvec; // functors for observables, _obsvec[0]=energy
     
     // output streams ----------------------------------------------------------
-    std::ofstream _var_param_output;
-    std::ofstream _obs_output;
-    std::string   _var_param_file_name;
-    std::string   _obs_file_name;
-    
+    std::ofstream _varfile_output;
+    std::ofstream _obsfile_output;
+    std::string   _varfile_name;
+    std::string   _obsfile_name;
+    void          _setup_varfile();    
+
     // setup functions ---------------------------------------------------------
-    void _init_state();
-    void _reinit_gmat();
-    void _compute_jas_sum();
+    void   _init_state();
+    void   _reinit_gmat();
+    void   _clear_obs();
+    void   _compute_jas_sum();
+    double _dj_sum(const size_t&, const int&);
 
     // update functions --------------------------------------------------------
-    void _flipspin(const size_t&);
-    void _exchange(const size_t&, const size_t&);
+    void _flipspin(const int&);
+    void _exchange(const int&, const int&);
     void _sweep();
     void _update_params(const double&);
   public:
     SpinWavefunction(
       const size_t&,      // system size
-      const double&,      // delta in the variational update
       ParamListUPtr&,     // unique pointer to parameter list
       AuxHamUPtr&,        // unique pointer to auxiliary Hamiltonian
       ObsUPtr&,           // unique pointer to energy functor
@@ -74,7 +75,7 @@ class SpinWavefunction {
 
     void add_obs(ObsUPtr& ptr){_obsvec.push_back(std::move(ptr));}
 
-    void optimize(const size_t&, const size_t&, const size_t&);
+    void optimize(const size_t&, const size_t&, const size_t&, const double&);
     void sample(const size_t&, const size_t&, const size_t&);
 
     // output functions -----------------------------------------------------------
