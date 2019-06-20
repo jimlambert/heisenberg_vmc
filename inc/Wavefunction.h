@@ -50,6 +50,8 @@ class SpinWavefunction {
     std::string   _varfile_name;
     std::string   _obsfile_name;
     void          _setup_varfile();    
+    void          _update_varfile();
+    void          _update_obsfile(const size_t&);
 
     // setup functions ---------------------------------------------------------
     void   _init_state();

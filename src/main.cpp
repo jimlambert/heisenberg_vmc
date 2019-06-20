@@ -24,7 +24,7 @@ using VMC::Parameters::SPIN;
 int main(int argc, char* argv[]) {
 
   
-  size_t L=6;
+  size_t L=4;
   double df=0.1;
   VMC::ParamListUPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
 
@@ -50,11 +50,14 @@ int main(int argc, char* argv[]) {
     par_lst_ptr, 
     aux_ham_ptr, 
     enrg_ptr,
-    "varparams.dat",
-    "n6obsvals.dat"  
-  );
-  
-  
+    "../vmc-dat/varparams",
+    "../vmc-dat/n4obsvals"  
+  ); 
+
+  test_wave_func.optimize(1000, 1000, 20, 0.1);
+
+
+
   //size_t L=10;
   //size_t equil=2000;
   //size_t simul=10000;

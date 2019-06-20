@@ -49,10 +49,6 @@ SpinWavefunction::SpinWavefunction (
   
   // setup output file for variational parameters
   _setup_varfile();
-
-  print_state();
-  _flipspin(0);
-  print_state();
 }
 
 // =============================================================================
@@ -61,6 +57,7 @@ SpinWavefunction::SpinWavefunction (
 
 // output streams --------------------------------------------------------------
 void SpinWavefunction::_setup_varfile() {
+  _varfile_name=_varfile_name+".dat";
   _varfile_output.open(_varfile_name, std::ios::trunc);  
   for(size_t i=0; i<_par_lst_ptr->npar(); i++) {
     _varfile_output << std::setw(FILE_COLUMN_WIDTH) 
@@ -76,7 +73,61 @@ void SpinWavefunction::_setup_varfile() {
                     << std::setprecision(FILE_PRECISION)
                     << (*_par_lst_ptr)[i].val;
   }
+  _varfile_output << '\n';
   _varfile_output.close();
+}
+
+
+void SpinWavefunction::_update_varfile() {
+  _varfile_output.open(_varfile_name, std::ios::app);
+  for(size_t i=0; i<_par_lst_ptr->npar(); i++) {
+    _varfile_output << std::setw(FILE_COLUMN_WIDTH) 
+                    << std::left
+                    << std::setfill(' ')
+                    << std::setprecision(FILE_PRECISION)
+                    << (*_par_lst_ptr)[i].val;
+  }
+  _varfile_output << '\n';
+  _varfile_output.close(); 
+}
+
+
+void SpinWavefunction::_update_obsfile(const size_t& i) {
+  std::string curr_obs=_obsfile_name+std::to_string(i)+".dat";
+  std::cout << curr_obs << std::endl;
+  size_t nbins=(*_obsvec[0]).local_meas.nbins();
+  _obsfile_output.open(curr_obs);
+  _obsfile_output << i << '\n';
+  for(auto it=_obsvec.begin(); it!=_obsvec.end(); it++) {
+    _obsfile_output << std::setw(FILE_COLUMN_WIDTH)
+                    << std::left 
+                    << std::setfill(' ')
+                    << (*it)->name;
+  }
+  for(size_t p=0; p<_par_lst_ptr->npar(); p++) {
+    _obsfile_output << std::setw(FILE_COLUMN_WIDTH)
+                    << std::left
+                    << std::setfill(' ')
+                    << (*_par_lst_ptr)[p].name;
+  }
+  _obsfile_output << '\n';
+  for(size_t i=0; i<nbins; i++) {
+    for(size_t b=0; b<_obsvec.size(); b++) {
+      _obsfile_output << std::setw(FILE_COLUMN_WIDTH)
+                      << std::left 
+                      << std::setfill(' ')
+                      << (*_obsvec[b]).local_meas(i); 
+    }
+    for(size_t p=0; p<_par_lst_ptr->npar(); p++) {
+      _obsfile_output << std::setw(FILE_COLUMN_WIDTH)
+                      << std::left 
+                      << std::setfill(' ')
+                      << (*_par_lst_ptr)[p].local_meas(i);  
+    }
+    _obsfile_output << '\n';
+  }
+  _obsfile_output.close();
+  _obsfile_output.clear();
 }
 
 // setup functions -------------------------------------------------------------
@@ -192,8 +243,60 @@ void SpinWavefunction::_sweep() {
 }
 
 
-void SpinWavefunction::_update_params(const double&) {
+void SpinWavefunction::_update_params(const double& delta) {
+  
+  size_t npar=_par_lst_ptr->npar();
+  Eigen::MatrixXd s(npar,npar);
+  Eigen::VectorXd f(npar);
+  s=Eigen::MatrixXd::Zero(npar,npar);
+  
+  // computer S matrix and force vector
+  for(size_t ka=0; ka<npar; ka++) {
+    size_t na=(*_par_lst_ptr)[ka].local_meas.nvals();
+    for(size_t kb=ka; kb<npar; kb++) {
+      std::complex<double> avea=(*_par_lst_ptr)[ka].local_meas.ave();
+      std::complex<double> aveb=(*_par_lst_ptr)[kb].local_meas.ave();
+      std::complex<double> total=0.0;
+      for(size_t i=0; i<na; i++) {
+        std::complex<double> ai=(*_par_lst_ptr)[ka].local_meas[i];
+        std::complex<double> bi=(*_par_lst_ptr)[kb].local_meas[i];
+        total+=(ai-avea) * (bi-aveb);
+      }
+      s(ka,kb)=(total/(double)na).real();
+      s(kb,ka)=s(ka,kb);
+    } // kb loop
+    std::complex<double> total=0.0;
+    std::complex<double> avea=(*_par_lst_ptr)[ka].local_meas.ave();
+    for(size_t i=0; i<na; i++) {
+      std::complex<double> ai=(*_par_lst_ptr)[ka].local_meas[i];
+      total += std::conj((*_obsvec[0]).local_meas[i])*(ai-avea);
+    }
+    f(ka)=-2.0*total.real()/(double)na;
+  } // ka loop 
 
+  // determine which indices to keep
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solve_s;
+  solve_s.compute(s);
+  Eigen::VectorXd e_vals=solve_s.eigenvalues();
+  Eigen::MatrixXd e_vecs=solve_s.eigenvectors();
+  std::vector<size_t> keep_indices;
+  for(size_t i=0; i<npar; i++) if(e_vals(i)<1e-3) keep_indices.push_back(i);
+  size_t nnew=keep_indices.size();
+  
+  // modify parameters above threshold
+  Eigen::MatrixXd s_new(nnew, nnew);
+  Eigen::VectorXd f_new(nnew);
+  Eigen::VectorXd dA(nnew);
+  for(size_t i=0; i<nnew; i++) {
+    size_t i_index=keep_indices[i];
+    for(size_t j=0; j<nnew; j++) {
+      size_t j_index=keep_indices[j];
+      s_new(i,j)=s(i_index,j_index);
+    }
+    f_new(i)=f(i_index);
+  }
+  dA=delta*(s_new.inverse())*f_new;
+  for(size_t k=0; k<nnew; k++) (*_par_lst_ptr)[keep_indices[k]].val+=dA[k];
 }
 
 // =============================================================================
@@ -217,6 +320,11 @@ void SpinWavefunction::optimize(
       // measure local  expectation value of the energy
       (*_obsvec[0])(_state, _gmat);   
     } // simulation loop
+    _update_params(delta);
+    _reinit_gmat();
+    _compute_jas_sum();
+    _update_varfile();
+    _update_obsfile(opt);
   } // optimization loop
 }
 
@@ -233,7 +341,6 @@ void SpinWavefunction::print_state() {
     std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
               << _state(i);
   std::cout << std::endl;
-
 }
 
 } // namespace Wavefunction

@@ -477,9 +477,8 @@ void HeisenbergChainSimulator::optimize
       measfile << std::setw(COLUMN_WIDTH) << std::left << _el(i);
       for(auto pit=_params.begin(); pit!=_params.end(); pit++) 
         measfile << std::setw(COLUMN_WIDTH) << std::left << pit->lmeas(i);
-      for(auto jit=_jsparams.begin(); jit!=_jsparams.end(); jit++) {
+      for(auto jit=_jsparams.begin(); jit!=_jsparams.end(); jit++) 
         measfile << std::setw(COLUMN_WIDTH) << std::left << jit->lmeas(i);
-      }
       measfile << '\n';
     }
     measfile.close();

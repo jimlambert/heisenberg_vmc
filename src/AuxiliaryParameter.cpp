@@ -4,7 +4,7 @@ namespace VMC {
 namespace Parameters {
 
 void AuxiliaryParameter::operator() (
-  BasisState& state, 
+  BasisState&       state, 
   Eigen::MatrixXcd& gmat
 ) {
   size_t size=state.size();
