@@ -30,9 +30,9 @@ int main(int argc, char* argv[]) {
 
   par_lst_ptr->build_aux_param(ONSITE, "onsite", 0.2, 0, 0, true, 100);  
   par_lst_ptr->build_aux_param(HOPPING, "hop1", 0.3, 0, 1, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.3, 0, 2, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop4", 0.3, 0, 4, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.3, 0, 2, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop4", 0.3, 0, 4, true, 100);
   par_lst_ptr->build_jas_param(SPIN, "spin1", 1.0, 0, 1, true, 100);
   par_lst_ptr->build_jas_param(SPIN, "spin2", 1.0, 0, 2, true, 100);
   par_lst_ptr->report_aux_params();
@@ -54,7 +54,8 @@ int main(int argc, char* argv[]) {
     "../vmc-dat/n4obsvals"  
   ); 
 
-  test_wave_func.optimize(1000, 1000, 20, 0.1);
+  test_wave_func.optimize(1000, 10000, 20, 0.1);
+
 
 
 

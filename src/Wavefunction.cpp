@@ -71,7 +71,7 @@ void SpinWavefunction::_setup_varfile() {
                     << std::left
                     << std::setfill(' ')
                     << std::setprecision(FILE_PRECISION)
-                    << (*_par_lst_ptr)[i].val;
+                    << (*_par_lst_ptr)[i].val.real();
   }
   _varfile_output << '\n';
   _varfile_output.close();
@@ -85,7 +85,7 @@ void SpinWavefunction::_update_varfile() {
                     << std::left
                     << std::setfill(' ')
                     << std::setprecision(FILE_PRECISION)
-                    << (*_par_lst_ptr)[i].val;
+                    << (*_par_lst_ptr)[i].val.real();
   }
   _varfile_output << '\n';
   _varfile_output.close(); 
@@ -167,6 +167,9 @@ void SpinWavefunction::_clear_obs() {
   for(auto it=_obsvec.begin(); it!=_obsvec.end(); it++) {
     (*it)->local_meas.clear();
   }
+  for(size_t i=0; i<(*_par_lst_ptr).npar(); i++) {
+    (*_par_lst_ptr)[i].local_meas.clear();
+  }
 }
 
 
@@ -236,8 +239,6 @@ void SpinWavefunction::_sweep() {
     int rand_pos=(*_rand_pos)(_mteng);
     _flipspin(rand_pos);   
   }
-  // we recompute these values every sweep just to avoid roundoff errors. This
-  // may be excessive and it might instead be best to compute these fewer times.
   _reinit_gmat();
   _compute_jas_sum(); 
 }
@@ -280,23 +281,27 @@ void SpinWavefunction::_update_params(const double& delta) {
   Eigen::VectorXd e_vals=solve_s.eigenvalues();
   Eigen::MatrixXd e_vecs=solve_s.eigenvectors();
   std::vector<size_t> keep_indices;
-  for(size_t i=0; i<npar; i++) if(e_vals(i)<1e-3) keep_indices.push_back(i);
+  for(size_t i=0; i<npar; i++) if(e_vals(i)>1e-3) keep_indices.push_back(i);
   size_t nnew=keep_indices.size();
-  
-  // modify parameters above threshold
-  Eigen::MatrixXd s_new(nnew, nnew);
-  Eigen::VectorXd f_new(nnew);
-  Eigen::VectorXd dA(nnew);
-  for(size_t i=0; i<nnew; i++) {
-    size_t i_index=keep_indices[i];
-    for(size_t j=0; j<nnew; j++) {
-      size_t j_index=keep_indices[j];
-      s_new(i,j)=s(i_index,j_index);
+  if(nnew>0) {
+    // modify parameters above threshold
+    Eigen::MatrixXd s_new(nnew, nnew);
+    Eigen::VectorXd f_new(nnew);
+    Eigen::VectorXd dA(nnew);
+    for(size_t i=0; i<nnew; i++) {
+      size_t i_index=keep_indices[i];
+      for(size_t j=0; j<nnew; j++) {
+        size_t j_index=keep_indices[j];
+        s_new(i,j)=s(i_index,j_index);
+      }
+      f_new(i)=f(i_index);
     }
-    f_new(i)=f(i_index);
-  }
-  dA=delta*(s_new.inverse())*f_new;
-  for(size_t k=0; k<nnew; k++) (*_par_lst_ptr)[keep_indices[k]].val+=dA[k];
+
+    dA=delta*(s_new.inverse())*f_new;
+    for(size_t k=0; k<nnew; k++) {
+      (*_par_lst_ptr)[keep_indices[k]].val+=dA[k];
+    }
+  } 
 }
 
 // =============================================================================
