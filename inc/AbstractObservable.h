@@ -5,6 +5,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <string>
+#include "ParameterList.h"
 #include "LocalMeasurement.h"
 #include "BasisState.h"
 
@@ -24,7 +25,11 @@ struct Observable {
   MeasCd local_meas;
   Observable(const std::string& n, const size_t& bs) 
     : name(n), local_meas(bs) {} 
-  virtual void operator()(const BasisState&, const Eigen::MatrixXcd&)=0;
+  virtual void operator()(
+    const BasisState&, 
+    const Eigen::MatrixXcd&,
+    const JasParamUVec& 
+  )=0;
 };
 
 // =============================================================================

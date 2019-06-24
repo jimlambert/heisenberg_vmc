@@ -98,7 +98,8 @@ def ProcessDataFiles(namePattern, varFileType):
             errs = []
             for data in cData:
                 vals.append(mean(data.real))
-                errs.append(np.sqrt(variance(data.real)/len(data)))
+                #errs.append(np.sqrt(variance(data.real)/len(data)))
+                errs.append(np.sqrt(variance(data.real)))
             obsAve.append(vals)
             obsErr.append(errs)
     obsAve = ReshapeData([x for _,x in sorted(zip(varSteps, obsAve))])

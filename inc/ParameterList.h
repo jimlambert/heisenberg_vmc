@@ -77,6 +77,7 @@ class ParameterList {
 } // namespace Parameters
 
 typedef std::unique_ptr<Parameters::ParameterList> ParamListUPtr; 
+typedef std::shared_ptr<Parameters::ParameterList> ParamListSPtr; 
 
 } // namespace VMC
 

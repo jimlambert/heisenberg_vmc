@@ -39,7 +39,7 @@ class SpinWavefunction {
     size_t            _size; // size of the spin model
     double            _jas_sum; // running total of Jastrow factors 
     Eigen::MatrixXcd  _gmat; // Green's function matrix 
-    ParamListUPtr     _par_lst_ptr; // pointer to parameter list
+    ParamListSPtr     _par_lst_ptr; // pointer to parameter list
     AuxHamSPtr        _aux_ham_ptr; // pointer to auxiliary Hamiltonian
     BasisState        _state; // spin state with order of operators    
     ObsUVec           _obsvec; // functors for observables, _obsvec[0]=energy
@@ -68,7 +68,7 @@ class SpinWavefunction {
   public:
     SpinWavefunction(
       const size_t&,      // system size
-      ParamListUPtr&,     // unique pointer to parameter list
+      ParamListSPtr&,     // unique pointer to parameter list
       AuxHamUPtr&,        // unique pointer to auxiliary Hamiltonian
       ObsUPtr&,           // unique pointer to energy functor
       const std::string&, // name of file for variational parameters
@@ -83,6 +83,7 @@ class SpinWavefunction {
     // output functions -----------------------------------------------------------
     void print_gmat() {std::cout << _gmat << std::endl;}
     void print_state(); 
+    void print_spins();
 };
 
 // =============================================================================

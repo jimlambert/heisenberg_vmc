@@ -1,12 +1,15 @@
 #include <cstdlib>
+#include <random>
 #include <time.h>
 #include <iostream>
 #include <fstream>
 #include <Eigen/Dense>
 #include "VarParam.h"
 #include "IsingChainEnergy.h"
+#include "HeisenbergChainEnergy.h"
 #include "Wavefunction.h"
 #include "HoppingChainHamiltonian.h"
+#include "PairingChainHamiltonian.h"
 #include "BasisState.h"
 #include "ParameterList.h"
 #include "SpinSpin.h"
@@ -22,27 +25,56 @@ using VMC::Parameters::PAIRING;
 using VMC::Parameters::SPIN;
 
 int main(int argc, char* argv[]) {
-
-  
+ 
   size_t L=4;
   double df=0.1;
-  VMC::ParamListUPtr par_lst_ptr=make_unique<VMC::Parameters::ParameterList>();
+  VMC::ParamListSPtr par_lst_ptr=make_shared<VMC::Parameters::ParameterList>();
 
-  par_lst_ptr->build_aux_param(ONSITE, "onsite", 0.2, 0, 0, true, 100);  
-  par_lst_ptr->build_aux_param(HOPPING, "hop1", 0.3, 0, 1, true, 100);
-  //par_lst_ptr->build_aux_param(HOPPING, "hop2", 0.3, 0, 2, true, 100);
-  //par_lst_ptr->build_aux_param(HOPPING, "hop3", 0.3, 0, 3, true, 100);
-  //par_lst_ptr->build_aux_param(HOPPING, "hop4", 0.3, 0, 4, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin1", 1.0, 0, 1, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin2", 1.0, 0, 2, true, 100);
+  std::random_device rd;
+  std::mt19937 mteng(rd());
+  std::uniform_real_distribution<double> rand_num(-1.0, 1.0);
+  std::uniform_real_distribution<double> pos_rand_num(0.0, 1.0);
+  std::uniform_real_distribution<double> neg_rand_num(-1.0, 0.0);
+  //par_lst_ptr->build_aux_param(ONSITE, "onsite", 0.2, 0, 0, true, 100);  
+  //par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, L, false, 100);  
+  //for(size_t i=1; i<L+1; i++) {
+  //  std::string name="hop" + std::to_string(i);
+  //  par_lst_ptr->build_aux_param(HOPPING, name, rand_num(mteng), 0, i, true, 100);  
+  //} 
+  //for(size_t i=1; i<L+1; i++) {
+  //  std::string name="hop" + std::to_string(i);
+  //  par_lst_ptr->build_aux_param(HOPPING, name, rand_num(mteng), 0, i, true, 100);  
+  //} 
+  // 
+  //par_lst_ptr->build_jas_param(SPIN, "spin1", neg_rand_num(mteng), 0, 1, true, 100); 
+  //par_lst_ptr->report_aux_params();
+  //par_lst_ptr->report_jas_params(); 
+
+  
+  par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, 0, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hop1", rand_num(mteng), 0, 1, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hop1", rand_num(mteng), 0, 2, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 2, true, 100);
   par_lst_ptr->report_aux_params();
   par_lst_ptr->report_jas_params(); 
- 
-  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
-                        ("Ising Energy", 100, 1.0); 
 
-  VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
+
+  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
+                        ("Ising-Energy", 100, 1.0); 
+  //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
+  //                      ("Heisenberg-Energy", 100, 1.0, 1.0, 1.0); 
+
+  //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
+  //                            (true, 2*L, par_lst_ptr->aux_vec());
+  VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::BCSChainHam>
                               (true, 2*L, par_lst_ptr->aux_vec());
+ 
+  std::cout << aux_ham_ptr->get_matrix() << std::endl;
+  
+  for(size_t i=0; i<par_lst_ptr->naux(); i++) {
+    std::cout << (*par_lst_ptr).aux(i).name << std::endl;
+    std::cout << (*par_lst_ptr).aux(i).vmat << std::endl;
+  }
   
   VMC::Wavefunctions::SpinWavefunction test_wave_func
   (
@@ -54,11 +86,11 @@ int main(int argc, char* argv[]) {
     "../vmc-dat/n4obsvals"  
   ); 
 
-  test_wave_func.optimize(1000, 10000, 20, 0.1);
-
-
-
-
+  //test_wave_func.optimize(1000, 5000, 60, 0.05);
+  //par_lst_ptr->report_aux_params();
+  //par_lst_ptr->report_jas_params();
+  
+  
   //size_t L=10;
   //size_t equil=2000;
   //size_t simul=10000;

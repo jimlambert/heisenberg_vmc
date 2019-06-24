@@ -5,6 +5,7 @@
 // =============================================================================
 
 #define TERM_COLUMN_WIDTH 15
+#define TERM_COLUMN_WIDTH_WIDE 25
 #define FILE_COLUMN_WIDTH 20
 #define FILE_PRECISION    5
 #define INDENT_WIDTH      2

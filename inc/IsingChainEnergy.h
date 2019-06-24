@@ -12,7 +12,11 @@ struct IsingChainEnergy : Observable {
     const size_t& bs, 
     const double& j
   ) : Observable(n, bs) {coeffs.push_back(j);}
-  void operator()(const BasisState&, const Eigen::MatrixXcd&);
+  void operator()(
+    const BasisState&, 
+    const Eigen::MatrixXcd&,
+    const JasParamUVec&
+  );
 };
 
 }

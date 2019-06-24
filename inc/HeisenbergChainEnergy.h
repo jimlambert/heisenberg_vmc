@@ -6,8 +6,23 @@
 namespace VMC {
 namespace Observables {
 
-struct HeisenbergChainEnergy : Oberservable {
-  void operator(const BasisState&, const Eigen::MatrixXcd&);
+struct HeisenbergChainEnergy : Observable {
+  HeisenbergChainEnergy(
+    const std::string &n, 
+    const size_t& bs,
+    const double& jz,
+    const double& jx,
+    const double& jy
+  ) : Observable(n, bs) {
+    coeffs.push_back(jz);
+    coeffs.push_back(jx);
+    coeffs.push_back(jy);
+  }
+  void operator()(
+    const BasisState&, 
+    const Eigen::MatrixXcd&,
+    const JasParamUVec&
+  );
 };
 
 } // namespace Observables

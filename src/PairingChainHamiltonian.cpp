@@ -1,7 +1,8 @@
+
 #include <iostream>
 #include <Eigen/Dense>
 #include "AuxiliaryParameter.h"
-#include "HoppingChainHamiltonian.h"
+#include "PairingChainHamiltonian.h"
 
 namespace VMC {
 namespace AuxiliaryHamiltonians {
@@ -9,7 +10,7 @@ namespace AuxiliaryHamiltonians {
 // Private Members
 // ============================================================================= 
   
-void HoppingChainHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
+void PairingChainHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
   if(!(aux_ptr->vinit)) {
     std::cout << "Parameter " << aux_ptr->name << " has unitialized vmatrix" 
               << std::endl;
@@ -21,7 +22,7 @@ void HoppingChainHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
 // Public Members
 // ============================================================================= 
 
-HoppingChainHamiltonian::HoppingChainHamiltonian(
+PairingChainHamiltonian::PairingChainHamiltonian(
   const bool&          b,
   const size_t&        n,
   AuxParamUVec&  params_vec
@@ -30,7 +31,7 @@ HoppingChainHamiltonian::HoppingChainHamiltonian(
   init(params_vec);
 }
 
-void HoppingChainHamiltonian::init(AuxParamUVec& params_vec) {
+void PairingChainHamiltonian::init(AuxParamUVec& params_vec) {
   _hopping_matrix = Eigen::MatrixXcd::Zero(_size,_size);
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
     _check_vmat_init((*it));  
@@ -48,17 +49,21 @@ void HoppingChainHamiltonian::init(AuxParamUVec& params_vec) {
 }
 
 
-void HoppingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
+void PairingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
     bool ti=(*it)->trans_inv;
     (*it)->vmat=Eigen::MatrixXd::Zero(_size,_size);
     switch((*it)->subtype) {
       case Parameters::ONSITE: 
       {
-        if(ti) for(size_t i=0; i<_size; i++) (*it)->vmat(i,i)=1;
+        if(ti) for(size_t i=0; i<_size; i++) {
+          if(i<(_size/2)) (*it)->vmat(i,i)+=-1;
+          else            (*it)->vmat(i,i)+=1;
+        }
         else {
           size_t r=(*it)->site;
-          (*it)->vmat(r,r)+=1;
+          if(r<(_size/2)) (*it)->vmat(r,r)+=-1;
+          else        (*it)->vmat(r,r)+=1;
         }
       }
       break; // case ONSITE
@@ -67,23 +72,60 @@ void HoppingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
         size_t r=(*it)->site;
         size_t dr=(*it)->dr;
         if(ti) {
-          for(size_t i=0; i<_size; i++) {
+          for(size_t i=0; i<_size/2; i++) {
             double bfactor=1.0;
-            size_t j=(i+dr)%_size;
+            size_t j=(i+dr)%(_size/2);
             if(((i+dr)>=_size) && !_bc) bfactor=-1.0; 
             (*it)->vmat(i,j)+=bfactor;
             (*it)->vmat(j,i)+=bfactor;
           }
+          for(size_t i=(_size/2); i<_size; i++) {
+            double bfactor=1.0;
+            size_t j=((i+dr)%_size)+(_size/2)*(size_t)((i+dr)/(_size));
+            if(((i+dr)>=_size) && !_bc) bfactor=-1.0; 
+            (*it)->vmat(i,j)+=-1*bfactor;
+            (*it)->vmat(j,i)+=-1*bfactor;
+          }
         }
         else {
-          size_t l=(r+dr)%_size;
           double bfactor=1.0;
-          if(((r+dr)>=_size) && !_bc) bfactor=-1.0; 
-          (*it)->vmat(r,l)+=bfactor;
-          (*it)->vmat(l,r)+=bfactor;
+          if(r<_size) {
+            size_t l=(r+dr)%_size/2;
+            if(((r+dr)>=_size/2) && !_bc) bfactor=-1.0;
+            (*it)->vmat(r,l)+=bfactor;
+            (*it)->vmat(l,r)+=bfactor;
+          }
+          else {
+            size_t l=(r+dr)%_size+(_size/2)*(size_t)((r+dr)/(_size));
+            if(((r+dr)>=_size) && !_bc) bfactor=-1.0;
+            (*it)->vmat(r,l)+=-1*bfactor;
+            (*it)->vmat(l,r)+=-1*bfactor;
+          } 
         }
       }
       break; // case Hopping
+      case Parameters::PAIRING:
+      {
+        size_t r=(*it)->site;
+        size_t dr=(*it)->dr;
+        if(ti) {
+          for(size_t i=0; i<_size/2; i++) {
+            double bfactor=1.0;
+            size_t j=((i+dr)%(_size/2))+_size/2;
+            if(((i+dr)>=(_size/2)) && !_bc) bfactor=-1;
+            (*it)->vmat(i,j)+=1*bfactor;
+            (*it)->vmat(j,i)+=1*bfactor;
+          }
+        }
+        else {
+          double bfactor=1.0;
+          size_t l=((r+dr)%(_size/2))+_size/2;
+          if(((r+dr)>=(_size/2)) && !_bc) bfactor=-1;
+          (*it)->vmat(r,l)+=1*bfactor;
+          (*it)->vmat(l,r)+=1*bfactor;
+        } 
+      }
+      break; // case PAIRING
       default:
       {
         std::cout << "Forbidden parameter type for " << (*it)->name 
@@ -96,7 +138,7 @@ void HoppingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
   }
 }
 
-void HoppingChainHamiltonian::set_mmats(AuxParamUVec& params_vec) {
+void PairingChainHamiltonian::set_mmats(AuxParamUVec& params_vec) {
   Eigen::MatrixXcd U=_solver.eigenvectors();
   Eigen::VectorXd  e=_solver.eigenvalues();
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
@@ -111,7 +153,7 @@ void HoppingChainHamiltonian::set_mmats(AuxParamUVec& params_vec) {
   }
 }
 
-Eigen::MatrixXcd HoppingChainHamiltonian::get_reduced_matrix(const size_t& nele) {
+Eigen::MatrixXcd PairingChainHamiltonian::get_reduced_matrix(const size_t& nele) {
   Eigen::MatrixXcd _evecs = _solver.eigenvectors();
   Eigen::MatrixXcd redmat(_size, nele);
   for(size_t i=0; i<_size; i++)

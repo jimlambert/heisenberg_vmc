@@ -15,7 +15,7 @@ class AuxiliaryHamiltonian {
     virtual void solve()=0;
     virtual void set_vmats(AuxParamUVec&)=0;
     virtual void set_mmats(AuxParamUVec&)=0;
-    virtual void init(const AuxParamUVec&)=0;
+    virtual void init(AuxParamUVec&)=0;
     virtual Eigen::MatrixXcd get_reduced_matrix(const size_t&)=0;
     virtual Eigen::MatrixXcd get_matrix()=0;
     virtual Eigen::MatrixXcd get_eigenvectors()=0;
