@@ -10,8 +10,12 @@ struct IsingChainEnergy : Observable {
   IsingChainEnergy(
     const std::string& n, 
     const size_t& bs, 
-    const double& j
-  ) : Observable(n, bs) {coeffs.push_back(j);}
+    const double& j,
+    const double& h
+  ) : Observable(n, bs) {
+    coeffs.push_back(j);
+    coeffs.push_back(h);
+  }
   void operator()(
     const BasisState&, 
     const Eigen::MatrixXcd&,

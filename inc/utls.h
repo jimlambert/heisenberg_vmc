@@ -22,6 +22,13 @@ double compute_dj_exchange(
   const int&
 );
 
+double compute_dj_flip(
+  const BasisState&, 
+  const JasParamUVec&, 
+  const size_t&,
+  const int&
+);
+
 } // namespace Utls
 } // namespace VMC
 

@@ -13,6 +13,7 @@ void AuxiliaryParameter::operator() (
     size_t lpos=state.find(l+1);
     for(size_t r=0; r<2*size; r++) redmat(l,r)=mmat(lpos,r);
   }
+  //std::cout << (redmat*gmat).trace() << std::endl;
   local_meas.push((redmat*gmat).trace()); 
 }
 

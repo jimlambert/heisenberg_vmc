@@ -14,6 +14,7 @@ SpinWavefunction::SpinWavefunction (
   const std::string& vn, // name of file for variational parameters
   const std::string& on  // name of file for observables
 ) : 
+  _sfac(1),
   _size(l), 
   _jas_sum(0.0),
   _par_lst_ptr(plp),
@@ -31,10 +32,28 @@ SpinWavefunction::SpinWavefunction (
   
   // setup output file for variational parameters
   _setup_varfile();
+  
+  //Eigen::MatrixXcd redmat(2*_size,_size);
+  //redmat=_aux_ham_ptr->get_reduced_matrix(_size);
+  //Eigen::MatrixXcd projmat(_size,_size);
+  //do {
+  // _init_state();
+  // for(size_t i=0; i<_size; i++) {
+  //   size_t pos=_state.find(i+1);
+  //   //if(_state[i]==1) pos=i;
+  //   //else pos=i+_size;
+  //   for(size_t j=0; j<_size; j++) {
+  //     projmat(i, j) = redmat(pos, j);
+  //   }
+  // }
+  //} while(fabs(projmat.determinant())<1e-12);
 
-  //std::cout << _gmat << std::endl;
+  //// build Green's function matrix
+  //_gmat=redmat*(projmat.inverse());
+  //_compute_jas_sum();
+  //std::cout << _jas_sum << std::endl;
   //print_state();
-  //(*_obsvec[0])(_state, _gmat);
+  //(*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec()); 
 }
 
 // =============================================================================
@@ -253,59 +272,79 @@ void SpinWavefunction::_update_params(const double& delta) {
     } // kb loop
     std::complex<double> total=0.0;
     std::complex<double> avea=(*_par_lst_ptr)[ka].local_meas.ave();
+    std::complex<double> avee=(*_obsvec[0]).local_meas.ave();
     for(size_t i=0; i<na; i++) {
       std::complex<double> ai=(*_par_lst_ptr)[ka].local_meas[i];
+      // total += std::conj((*_obsvec[0]).local_meas[i]-avee)*(ai-avea);
       total += std::conj((*_obsvec[0]).local_meas[i])*(ai-avea);
     }
     f(ka)=-2.0*total.real()/(double)na;
   } // ka loop 
 
+  // FULL SOLUTION
+  Eigen::MatrixXd s_alt(npar, npar);
+  Eigen::VectorXd f_alt(npar); 
+  //for(size_t ka=0; ka<npar; ka++) {
+  //  for(size_t kb=0; kb<npar; kb++) {
+  //    s_alt(ka,kb)=s(ka,kb)/(std::sqrt(s(ka,ka)*s(kb,kb)));
+  //  }
+  //  s_alt(ka,ka)=1;
+  //  f_alt(ka)=f(ka)/std::sqrt(s(ka,ka));
+  //  if(f(ka)<1e-5) f_alt(ka)=0;
+  //}
+  for(size_t i=0; i<npar; i++) s(i,i)+=1e-3;
+  Eigen::VectorXd da(npar);
+  std::cout << "dE:" << '\t' 
+            << -1.0*delta*f.transpose()*s.inverse()*f
+            << std::endl;
+  da=s.colPivHouseholderQr().solve(delta*f);
+  for(size_t k=0; k<npar; k++) 
+    (*_par_lst_ptr)[k].val+=da[k]/std::sqrt(s(k,k));
+  
+  // SUBSPACE SOLUTION
   // determine which indices to keep
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solve_s;
-  solve_s.compute(s);
-  Eigen::VectorXd e_vals=solve_s.eigenvalues();
-  Eigen::MatrixXd e_vecs=solve_s.eigenvectors();
-  std::vector<size_t> keep_indices;
-  for(size_t i=0; i<npar; i++) if(e_vals(i)>1e-3) keep_indices.push_back(i);
-  size_t nnew=keep_indices.size();
-  if(nnew>0) {
-    // modify parameters above threshold
-    s=(e_vecs.adjoint())*s*e_vecs;
-    f=e_vecs*f;
-    Eigen::MatrixXd s_new(nnew, nnew);
-    Eigen::VectorXd f_new(nnew);
-    Eigen::VectorXd dA_trans(nnew);
-    Eigen::VectorXd dA(npar);
-    for(size_t i=0; i<nnew; i++) {
-      size_t i_index=keep_indices[i];
-      std::cout << i_index << std::endl;
-      for(size_t j=0; j<nnew; j++) {
-        size_t j_index=keep_indices[j];
-        s_new(i,j)=s(i_index,j_index);
-      }
-      f_new(i)=f(i_index);
-    }
-
-    // try preconditioning reduced matrix
-    //Eigen::MatrixXd s_pc(nnew,nnew);
-    //Eigen::VectorXd f_pc(nnew);
-    //for(size_t ka=0; ka<nnew; ka++) {
-    //  f_pc(ka)=f_new(ka)/std::sqrt(s_new(ka,ka));
-    //  for(size_t kb=0; kb<nnew; kb++) {
-    //    s_pc(ka,kb)=s_new(ka,kb)/(std::sqrt(s_new(ka,ka)*s_new(kb,kb)));
-    //  }
-    //}
-    
-    dA_trans=delta*(s_new.inverse())*f_new;
-    for(size_t i=0; i<npar; i++) dA(i)=0;
-    for(size_t i=0; i<nnew; i++) dA(keep_indices[i])=dA_trans(i);
-    //dA=e_vecs.adjoint()*dA; 
-    //dA=delta*(s_pc.inverse())*f_pc;
-    //for(size_t k=0; k<nnew; k++) {
-    //  (*_par_lst_ptr)[keep_indices[k]].val+=dA[k];
-    //}
-    for(size_t k=0; k<npar; k++) (*_par_lst_ptr)[k].val+=dA[k];
-  } 
+  //Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solve_s;
+  //solve_s.compute(s);
+  //Eigen::VectorXd e_vals=solve_s.eigenvalues();
+  //Eigen::MatrixXd e_vecs=solve_s.eigenvectors();
+  //std::vector<size_t> keep_indices;
+  //for(size_t i=0; i<npar; i++) if(fabs(e_vals(i))>1e-3) keep_indices.push_back(i);
+  //size_t nnew=keep_indices.size();
+  //if(nnew>0) {
+  //  // modify parameters above threshold
+  //  //s=(e_vecs.adjoint())*s*(e_vecs);
+  //  s=Eigen::MatrixXd::Zero(npar,npar);
+  //  for(size_t i=0; i<npar; i++) {
+  //    s(i,i)=e_vals(i);
+  //  }
+  //  f=e_vecs*f;
+  //  Eigen::MatrixXd s_new(nnew, nnew);
+  //  Eigen::VectorXd f_new(nnew);
+  //  Eigen::VectorXd dA_trans(nnew);
+  //  Eigen::VectorXd dA(npar);
+  //  for(size_t i=0; i<nnew; i++) {
+  //    size_t i_index=keep_indices[i];
+  //    for(size_t j=0; j<nnew; j++) {
+  //      size_t j_index=keep_indices[j];
+  //      s_new(i,j)=s(i_index,j_index);
+  //    }
+  //    f_new(i)=f(i_index);
+  //  }
+  //  // try preconditioning reduced matrix
+  //  //Eigen::MatrixXd s_pc(nnew,nnew);
+  //  //Eigen::VectorXd f_pc(nnew);
+  //  //for(size_t ka=0; ka<nnew; ka++) {
+  //  //  f_pc(ka)=f_new(ka)/std::sqrt(s_new(ka,ka));
+  //  //  for(size_t kb=0; kb<nnew; kb++) {
+  //  //    s_pc(ka,kb)=s_new(ka,kb)/(std::sqrt(s_new(ka,ka)*s_new(kb,kb)));
+  //  //  }
+  //  //}
+  //  dA_trans=s_new.colPivHouseholderQr().solve(delta*f_new);
+  //  for(size_t i=0; i<npar; i++) dA(i)=0;
+  //  for(size_t i=0; i<nnew; i++) dA(keep_indices[i])=dA_trans(i);
+  //  dA=e_vecs.adjoint()*dA;
+  //  for(size_t k=0; k<npar; k++) (*_par_lst_ptr)[k].val+=dA[k];
+  //} 
 }
 
 // =============================================================================
@@ -342,22 +381,25 @@ void SpinWavefunction::optimize(
     for(size_t equil=0; equil<equil_steps; equil++) _sweep();  
     for(size_t simul=0; simul<simul_steps; simul++) {
       _sweep();
+      //print_spins();
       // measure expectation values for variational parameters
       for(size_t i=0; i<_par_lst_ptr->npar(); i++) 
         (*_par_lst_ptr)[i](_state, _gmat);
       // measure local  expectation value of the energy
       (*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec());   
     } // simulation loop
-
     _update_params(delta);
     _aux_ham_ptr->init(_par_lst_ptr->aux_vec());
     _update_varfile();
     _update_obsfile(opt);
     std::cout << std::left 
-              << "variational step " 
+              << "variational step: " 
               << opt 
               << " complete"
-              << std::endl; 
+              << std::endl;
+    std::cout << "energy: " 
+              << (*_obsvec[0]).local_meas.ave() 
+              << std::endl;
   } // optimization loop
 }
 

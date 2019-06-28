@@ -25,7 +25,7 @@ void HeisenbergChainEnergy::operator()(
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*(gmat(nexpos1, lindex2));
       double dj_sum=Utls::compute_dj_exchange(state, jas_vec, i, j, -1, 1); 
-      total+=0.5*det*dj_sum;
+      total-=0.5*det*std::exp(dj_sum);
     }
     else {
       size_t iexpos1=i+size;
@@ -37,7 +37,7 @@ void HeisenbergChainEnergy::operator()(
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*gmat(nexpos1, lindex2);
       double dj_sum=Utls::compute_dj_exchange(state, jas_vec, i, j, 1, -1); 
-      total+=0.5*det*dj_sum;
+      total-=0.5*det*std::exp(dj_sum);
     }
   }
   //std::cout << total << std::endl;

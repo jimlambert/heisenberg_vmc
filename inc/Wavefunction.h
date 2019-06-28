@@ -36,6 +36,7 @@ class SpinWavefunction {
     std::uniform_int_distribution<int>*    _rand_pos;
 
     // member variables --------------------------------------------------------
+    int               _sfac; // factor determine sign in front of basis state
     size_t            _size; // size of the spin model
     double            _jas_sum; // running total of Jastrow factors 
     Eigen::MatrixXcd  _gmat; // Green's function matrix 

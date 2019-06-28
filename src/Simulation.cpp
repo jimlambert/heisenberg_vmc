@@ -97,7 +97,7 @@ void HeisenbergChainSimulator::_genstate() {
     double r = _rnum(_mteng);
     if(r < 0.5) { 
       _spinstate[i] = 1;
-      _operslist[i] = i;
+      _operslist[i] = i+1;
     } 
     else {
       _spinstate[i] = -1;
@@ -458,6 +458,7 @@ void HeisenbergChainSimulator::optimize
           size_t lpos=std::distance(itstart, std::find(itstart, itend, l+1));
           for(size_t r=0; r<2*_size; r++) redMat(l,r) = it->mmat(lpos, r);  
         }
+        
         // compute actual local value
         okmat=redMat*_gmat;
         std::complex<double> okval = okmat.trace();

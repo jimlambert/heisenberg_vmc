@@ -105,7 +105,7 @@ void HoppingChainHamiltonian::set_mmats(AuxParamUVec& params_vec) {
     UVU=U.adjoint()*((*it)->vmat)*U;
     for(size_t i=0; i<_size; i++)
     for(size_t j=0; j<_size; j++) 
-      if((i>((_size/2)-1))&&(j<=(_size/2)-1)) Q(i,j)=UVU(i,j)/(e(j)-e(i));
+      if((i>=((_size/2)))&&(j<(_size/2))) Q(i,j)=UVU(i,j)/(e(j)-e(i));
     (*it)->mmat=U*Q*(U.adjoint());
     (*it)->minit=true;
   }
