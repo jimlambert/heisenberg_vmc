@@ -26,7 +26,7 @@ using VMC::Parameters::SPIN;
 
 int main(int argc, char* argv[]) {
 
-  size_t L=22;
+  size_t L=10;
   double df=0.1;
   VMC::ParamListSPtr par_lst_ptr=make_shared<VMC::Parameters::ParameterList>();
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
   //    par_lst_ptr->build_jas_param(SPIN, name_jas, pos_rand_num(mteng), i, 1, false, 100);
   //}
 
-  par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, 0, false, 100);
+  //par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, 0, false, 100);
 
   for(size_t i=0; i<L; i++) {
     string name1="hop"+to_string(i);
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     //string name2="hopL"+to_string(i);
     //par_lst_ptr->build_aux_param(HOPPING, name2, rand_num(mteng), 0, L+i, true, 100);
   }
-  par_lst_ptr->build_jas_param(SPIN, "spin1", pos_rand_num(mteng), 0, 1, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin1", pos_rand_num(mteng), 0, 1, true, 100);
  
   //par_lst_ptr->build_aux_param(HOPPING, "hopp1", rand_num(mteng), 0, 1, true, 100);
   //par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 1, true, 100);
@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
   par_lst_ptr->report_aux_params();
   //par_lst_ptr->report_jas_params(); 
 
-  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
-                        ("Ising-Energy", 100, 1.0, 0.0); 
-  //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
-  //                      ("Heisenberg-Energy", 100, 1.0, 1.0, 1.0); 
+  //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
+  //                      ("Ising-Energy", 100, 1.0, 0.0); 
+  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
+                        ("Heisenberg-Energy", 100, 1.0, 1.0, 1.0); 
 
   //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::HopChainHam>
   //                            (false, 2*L, par_lst_ptr->aux_vec());

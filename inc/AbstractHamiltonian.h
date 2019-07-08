@@ -10,7 +10,7 @@ namespace AuxiliaryHamiltonians {
 // Parent class for auxiliary Hamiltonians
 // ============================================================================= 
 
-class AuxiliaryHamiltonian {
+class AbstractHamiltonian {
   public:
     virtual void solve()=0;
     virtual void set_vmats(AuxParamUVec&)=0;

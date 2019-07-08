@@ -9,7 +9,7 @@ namespace AuxiliaryHamiltonians {
 // Pairing Chain Hamiltonian class 
 // ============================================================================= 
 
-  class PairingLadderHamiltonian : public AuxiliaryHamiltonian {
+class PairingLadderHamiltonian : public AbstractHamiltonian {
   private:
     bool                                            _bc; // true=PBC, false=APBC
     size_t                                          _nrungs;

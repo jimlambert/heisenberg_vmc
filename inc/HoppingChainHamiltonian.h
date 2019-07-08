@@ -9,7 +9,7 @@ namespace AuxiliaryHamiltonians {
 // Hopping Chain Hamiltonian class 
 // ============================================================================= 
 
-class HoppingChainHamiltonian : public AuxiliaryHamiltonian {
+class HoppingChainHamiltonian : public AbstractHamiltonian {
   private:
     bool                                            _bc; // true=PBC, false=APBC
     size_t                                          _size;
