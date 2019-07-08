@@ -81,7 +81,7 @@ namespace Parameters {
 // =============================================================================
 
 enum ParameterType {AUXILIARY, JASTROW};
-enum ParameterSubtype {ONSITE, HOPPING, PAIRING, SPIN};
+enum ParameterSubtype {ONSITE, HOPPING, PAIRING, SPIN, RUNGHOP, RUNGPAIR};
 
 // =============================================================================
 // Parent struct forming the basis of all variational parameters

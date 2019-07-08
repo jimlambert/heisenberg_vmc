@@ -299,7 +299,7 @@ void SpinWavefunction::_update_params(const double& delta) {
             << std::endl;
   da=s.colPivHouseholderQr().solve(delta*f);
   for(size_t k=0; k<npar; k++) 
-    (*_par_lst_ptr)[k].val+=da[k]/std::sqrt(s(k,k));
+    (*_par_lst_ptr)[k].val+=da[k];
   
   // SUBSPACE SOLUTION
   // determine which indices to keep
