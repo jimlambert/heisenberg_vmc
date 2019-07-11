@@ -2,7 +2,6 @@
 
 namespace VMC {
 
-
 BasisState::BasisState(const size_t& size) : _size(size) {
   _spinstate.resize(_size,0); 
   _operslist.resize(2*_size,0); 

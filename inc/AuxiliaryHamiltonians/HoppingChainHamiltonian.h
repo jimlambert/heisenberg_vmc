@@ -3,7 +3,7 @@
 
 #include "AbstractHamiltonian.h"
 
-namespace VMC{
+namespace VMC {
 namespace AuxiliaryHamiltonians {
 
 // Hopping Chain Hamiltonian class 

@@ -1,4 +1,4 @@
-#include "utls.h"
+#include "utils.h"
 #include "IsingChainEnergy.h"
 
 namespace VMC {
@@ -18,7 +18,7 @@ void IsingChainEnergy::operator()(
       size_t nexpos=i+l;
       size_t lindex=state(iexpos)-1;
       std::complex<double> amp=gmat(nexpos, lindex);
-      double dj=Utls::compute_dj_flip(state, jas_vec, i, -2);
+      double dj=Utils::compute_dj_flip(state, jas_vec, i, -2);
       total+=coeffs[1]*dj*amp;
     }
     else {
@@ -26,7 +26,7 @@ void IsingChainEnergy::operator()(
       size_t nexpos=i;
       size_t lindex=state(iexpos)-1;
       std::complex<double> amp=gmat(nexpos, lindex);
-      double dj=Utls::compute_dj_flip(state, jas_vec, i, 2);
+      double dj=Utils::compute_dj_flip(state, jas_vec, i, 2);
       total+=coeffs[1]*dj*amp;
     }
   }

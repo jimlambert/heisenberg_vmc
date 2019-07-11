@@ -1,12 +1,12 @@
 #ifndef ABSTRACT_PARAMETER_H
 #define ABSTRACT_PARAMETER_H
 
-
 #include <Eigen/Dense>
 #include <vector>
 #include <complex>
 #include <memory>
 #include <string>
+#include "Coordinate.h"
 #include "BasisState.h"
 #include "LocalMeasurement.h"
 
@@ -81,7 +81,7 @@ namespace Parameters {
 // =============================================================================
 
 enum ParameterType {AUXILIARY, JASTROW};
-enum ParameterSubtype {ONSITE, HOPPING, PAIRING, SPIN, RUNGHOP, RUNGPAIR};
+enum ParameterSubtype {ONSITE, HOPPING, PAIRING, SPIN};
 
 // =============================================================================
 // Parent struct forming the basis of all variational parameters
@@ -95,6 +95,7 @@ struct Parameter {
   size_t                  dr;
   bool                    trans_inv; 
   MeasCd                  local_meas;
+  // constructor of 1D lattice
   Parameter(
     ParameterType      pt, // set parameter type
     const std::string& n,  // parameter name 

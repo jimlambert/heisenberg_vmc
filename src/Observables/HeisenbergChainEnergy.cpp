@@ -1,4 +1,4 @@
-#include "utls.h"
+#include "utils.h"
 #include "HeisenbergChainEnergy.h"
 
 namespace VMC {
@@ -24,7 +24,7 @@ void HeisenbergChainEnergy::operator()(
       size_t lindex2=state(iexpos2)-1;
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*(gmat(nexpos1, lindex2));
-      double dj_sum=Utls::compute_dj_exchange(state, jas_vec, i, j, -1, 1); 
+      double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, -1, 1); 
       total-=0.5*det*std::exp(dj_sum);
     }
     else {
@@ -36,7 +36,7 @@ void HeisenbergChainEnergy::operator()(
       size_t lindex2=state(iexpos2)-1;
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*gmat(nexpos1, lindex2);
-      double dj_sum=Utls::compute_dj_exchange(state, jas_vec, i, j, 1, -1); 
+      double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, 1, -1); 
       total-=0.5*det*std::exp(dj_sum);
     }
   }

@@ -1,11 +1,11 @@
-#ifndef UTLS_H
-#define UTLS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "BasisState.h"
 #include "ParameterList.h"
 
 namespace VMC {
-namespace Utls {
+namespace Utils {
 
 // Utility functions
 // =============================================================================
@@ -29,7 +29,9 @@ double compute_dj_flip(
   const int&
 );
 
-} // namespace Utls
+// =============================================================================
+
+} // namespace Utils
 } // namespace VMC
 
 #endif

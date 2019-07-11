@@ -1,8 +1,8 @@
 #include <cmath>
-#include "utls.h"
+#include "utils.h"
 
 namespace VMC {
-namespace Utls {
+namespace Utils {
 
 double compute_dj_exchange(
   const BasisState&   state, 

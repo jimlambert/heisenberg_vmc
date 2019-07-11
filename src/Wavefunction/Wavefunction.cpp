@@ -300,7 +300,10 @@ void SpinWavefunction::_update_params(const double& delta) {
   da=s.colPivHouseholderQr().solve(delta*f);
   for(size_t k=0; k<npar; k++) 
     (*_par_lst_ptr)[k].val+=da[k];
-  
+  std::cout << "dA:" << std::endl;
+  std::cout << "---" << std::endl; 
+  std::cout << da << std::endl;
+  std::cout << "---" << std::endl; 
   // SUBSPACE SOLUTION
   // determine which indices to keep
   //Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solve_s;
@@ -373,7 +376,6 @@ void SpinWavefunction::optimize(
        }
      }
     } while(fabs(projmat.determinant())<1e-12);
-
     // build Green's function matrix
     _gmat=redmat*(projmat.inverse());
     _compute_jas_sum();

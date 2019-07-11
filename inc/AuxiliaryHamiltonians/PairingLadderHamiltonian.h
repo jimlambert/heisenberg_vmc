@@ -17,11 +17,19 @@ class PairingLadderHamiltonian : public AbstractHamiltonian {
     Eigen::MatrixXcd                                _hopping_matrix;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> _solver;
 
+    // this function takes a chain index and a site index and maps them to the
+    // 1D index used in the BasisState, s[chain][site]->state[k].
+    size_t _pair2index(const size_t& chain, const size_t& site)
+      {return (chain*_nrungs)+site;};
+
     void _check_vmat_init(const AuxParamUPtr&);
+    void _set_onsite(const AuxParamUPtr&);
+    void _set_hopping(const AuxParamUPtr&);
+    void _set_pairing(const AuxParamUPtr&);
   public:
     PairingLadderHamiltonian(
         const bool&,   // boundary condition, PBC or APBC
-        const size_t&, // size of expanded basis state 
+        const size_t&, // number of rungs of expanded basis state 
         AuxParamUVec&  // variational parameters 
     );
     void solve() {_solver.compute(_hopping_matrix);}
