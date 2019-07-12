@@ -28,6 +28,21 @@ struct AuxiliaryParameter : Parameter {
       vinit(false), 
       minit(false)
   {}
+  AuxiliaryParameter(
+    ParameterSubtype   apt, // auxiliary parameter type
+    const std::string& n,   // parameter name 
+    const double&      v,   // value of parameter
+    const size_t&      x1,  // parameter site 
+    const size_t&      y1,  // parameter site 
+    const size_t&      x2,  // parameter site 
+    const size_t&      y2,  // parameter site 
+    const bool&        ti,  // translation invariant (true)
+    const size_t&      bs   // binsize for local_meas 
+  ) : Parameter(AUXILIARY, n, v, x1, y1, x2, y2, ti, bs), 
+      subtype(apt), 
+      vinit(false), 
+      minit(false)
+  {}
   ParameterSubtype get_subtype() {return subtype;}
   void operator() (BasisState&, Eigen::MatrixXcd&);
 };

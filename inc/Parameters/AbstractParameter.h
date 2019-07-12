@@ -6,7 +6,6 @@
 #include <complex>
 #include <memory>
 #include <string>
-#include "Coordinate.h"
 #include "BasisState.h"
 #include "LocalMeasurement.h"
 
@@ -95,6 +94,8 @@ struct Parameter {
   size_t                  dr;
   bool                    trans_inv; 
   MeasCd                  local_meas;
+  std::vector<size_t>     site1;
+  std::vector<size_t>     site2;
   // constructor of 1D lattice
   Parameter(
     ParameterType      pt, // set parameter type
@@ -112,6 +113,27 @@ struct Parameter {
       trans_inv(ti),
       local_meas(bs) 
   {}
+  Parameter(
+    ParameterType      pt, // set parameter type
+    const std::string& n,  // parameter name 
+    const double&      v,  // value of parameter
+    const size_t&      x1,  // parameter site 
+    const size_t&      y1,  // parameter site 
+    const size_t&      x2,  // parameter site 
+    const size_t&      y2,  // parameter site 
+    const bool&        ti, // translation invariant (true)
+    const size_t&      bs  // binsize for local_meas 
+  ) : type(pt), 
+      name(n), 
+      val(v), 
+      trans_inv(ti),
+      local_meas(bs) 
+  {
+    site1.push_back(x1);
+    site1.push_back(y1);
+    site2.push_back(x2);
+    site2.push_back(y2);
+  }
   ParameterType get_type() {return type;}
   virtual ParameterSubtype get_subtype()=0;
   virtual void operator() (BasisState&, Eigen::MatrixXcd&)=0;
