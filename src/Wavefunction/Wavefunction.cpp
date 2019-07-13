@@ -272,7 +272,6 @@ void SpinWavefunction::_update_params(const double& delta) {
     } // kb loop
     std::complex<double> total=0.0;
     std::complex<double> avea=(*_par_lst_ptr)[ka].local_meas.ave();
-    std::complex<double> avee=(*_obsvec[0]).local_meas.ave();
     for(size_t i=0; i<na; i++) {
       std::complex<double> ai=(*_par_lst_ptr)[ka].local_meas[i];
       // total += std::conj((*_obsvec[0]).local_meas[i]-avee)*(ai-avea);

@@ -9,8 +9,6 @@ namespace AuxiliaryHamiltonians {
 // Private Members
 // ============================================================================= 
  
-
-
 void PairingLadderHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
   if(!(aux_ptr->vinit)) {
     std::cout << "Parameter " << aux_ptr->name << " has unitialized vmatrix" 
@@ -20,21 +18,96 @@ void PairingLadderHamiltonian::_check_vmat_init(const AuxParamUPtr& aux_ptr) {
 }
 
 
-void PairingLadderHamiltonian::_set_onsite(const AuxParamUPtr&) {
-
-
+void PairingLadderHamiltonian::_set_onsite_vmat(const AuxParamUPtr& it) {
+  bool   ti=(it)->trans_inv;
+  if(ti) for(size_t i=0; i<_size; i++) {
+    if(i<(_size/2)) (it)->vmat(i,i)+=-1;
+    else            (it)->vmat(i,i)+=1;
+  }
+  else {
+    size_t r=_pair2index((it)->site1[0], (it)->site1[1]);
+    if(r<(_size/2)) (it)->vmat(r,r)+=-1;
+    else            (it)->vmat(r,r)+=1;
+  }
 }
 
 
-void PairingLadderHamiltonian::_set_hopping(const AuxParamUPtr&) {
-
-
+void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
+  size_t c1=(it)->site1[0];
+  size_t s1=(it)->site1[1];
+  size_t c2=(it)->site2[0];
+  size_t s2=(it)->site2[1];
+  size_t dc=c1-c2;
+  size_t ds=s1-s2;
+  bool   ti=(it)->trans_inv;
+  if(ti) {  // translation invariant case
+    // Up spin loop
+    for(size_t i=0; i<_nrungs/2; i++) {
+      double bfactor=1.0;
+      size_t j=(i+ds)%(_nrungs/2);
+      if(((i+ds)>=(_nrungs/2)) && !_bc) bfactor=-1.0;
+      size_t n=_pair2index(c1, i);
+      size_t m=_pair2index(c2, j);
+      (it)->vmat(n,m)+=bfactor;
+      (it)->vmat(m,n)+=bfactor;
+    } 
+    // Down spin loop
+    for(size_t i=(_nrungs/2); i<_nrungs; i++) {
+      double bfactor=1.0;
+      size_t j=((i+ds)%_nrungs)+(_nrungs/2)*(size_t)((i+ds)/_nrungs);
+      if(((i+ds)>=_nrungs) && !_bc) bfactor=-1.0;
+      size_t n=_pair2index(c1, i);
+      size_t m=_pair2index(c2, j);
+      (it)->vmat(n,m)+=-1*bfactor;
+      (it)->vmat(m,n)+=-1*bfactor; 
+    }
+  }  
+  else { // non-translation invariant case
+    double bfactor=1.0;
+    if(s1<_nrungs/2) { // up spin
+      if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+      size_t n=_pair2index(c1, s1);
+      size_t m=_pair2index(c2, s2);
+      (it)->vmat(n,m)+=bfactor;
+      (it)->vmat(m,n)+=bfactor;  
+    }
+    else { // down spin
+      if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+      size_t n=_pair2index(c1, s1);
+      size_t m=_pair2index(c2, s2);
+      (it)->vmat(n,m)+=-1*bfactor;
+      (it)->vmat(m,n)+=-1*bfactor;  
+    } 
+  }
 }
 
 
-void PairingLadderHamiltonian::_set_pairing(const AuxParamUPtr&) {
-  
-
+void PairingLadderHamiltonian::_set_pairing_vmat(const AuxParamUPtr& it) {
+  size_t c1=(it)->site1[0];
+  size_t s1=(it)->site1[1];
+  size_t c2=(it)->site2[0];
+  size_t s2=(it)->site2[1];
+  size_t ds=s1-s2;
+  bool   ti=(it)->trans_inv;
+  if(ti) { // translation invariant
+    for(size_t i=0; i<(_nrungs/2); i++) {
+      double bfactor=1.0;
+      size_t j=((i+ds)%(_nrungs/2))+_nrungs/2;
+      if(((i+ds)>=(_nrungs/2)) && !_bc) bfactor=-1;
+      size_t n=_pair2index(c1, i);
+      size_t m=_pair2index(c2, j);
+      (it)->vmat(n,m)+=bfactor;
+      (it)->vmat(m,n)+=bfactor;
+    }
+  }  
+  else { // non-translation invariant
+    double bfactor=1.0;
+    if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+    size_t n=_pair2index(c1, s1);
+    size_t m=_pair2index(c2, s2);
+    (it)->vmat(n,m)+=bfactor;
+    (it)->vmat(m,n)+=bfactor;
+  }
 }
 
 // ============================================================================= 
@@ -70,23 +143,16 @@ void PairingLadderHamiltonian::init(AuxParamUVec& params_vec) {
 
 void PairingLadderHamiltonian::set_vmats(AuxParamUVec& params_vec) {
   for(auto it=params_vec.begin(); it!=params_vec.end(); it++) {
-    bool ti=(*it)->trans_inv;
     (*it)->vmat=Eigen::MatrixXd::Zero(_size,_size);
     switch((*it)->subtype) {
       case Parameters::ONSITE:
-      {
-        _set_onsite(*it);
-      }
+      {_set_onsite_vmat(*it);}
       break; // case ONSITE
       case Parameters::HOPPING:
-      {
-        _set_hopping(*it);
-      }
+      {_set_hopping_vmat(*it);}
       break; // case Hopping
       case Parameters::PAIRING:
-      {
-        _set_pairing(*it);
-      }
+      {_set_pairing_vmat(*it);}
       break; // case PAIRING
       default:
       {

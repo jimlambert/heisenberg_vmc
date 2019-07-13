@@ -23,9 +23,9 @@ class PairingLadderHamiltonian : public AbstractHamiltonian {
       {return (chain*_nrungs)+site;};
 
     void _check_vmat_init(const AuxParamUPtr&);
-    void _set_onsite(const AuxParamUPtr&);
-    void _set_hopping(const AuxParamUPtr&);
-    void _set_pairing(const AuxParamUPtr&);
+    void _set_onsite_vmat(const AuxParamUPtr&);
+    void _set_hopping_vmat(const AuxParamUPtr&);
+    void _set_pairing_vmat(const AuxParamUPtr&);
   public:
     PairingLadderHamiltonian(
         const bool&,   // boundary condition, PBC or APBC

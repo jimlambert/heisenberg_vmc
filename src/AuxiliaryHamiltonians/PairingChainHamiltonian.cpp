@@ -113,16 +113,16 @@ void PairingChainHamiltonian::set_vmats(AuxParamUVec& params_vec) {
             double bfactor=1.0;
             size_t j=((i+dr)%(_size/2))+_size/2;
             if(((i+dr)>=(_size/2)) && !_bc) bfactor=-1;
-            (*it)->vmat(i,j)+=1*bfactor;
-            (*it)->vmat(j,i)+=1*bfactor;
+            (*it)->vmat(i,j)+=bfactor;
+            (*it)->vmat(j,i)+=bfactor;
           }
         }
         else {
           double bfactor=1.0;
           size_t l=((r+dr)%(_size/2))+_size/2;
           if(((r+dr)>=(_size/2)) && !_bc) bfactor=-1;
-          (*it)->vmat(r,l)+=1*bfactor;
-          (*it)->vmat(l,r)+=1*bfactor;
+          (*it)->vmat(r,l)+=bfactor;
+          (*it)->vmat(l,r)+=bfactor;
         } 
       }
       break; // case PAIRING
