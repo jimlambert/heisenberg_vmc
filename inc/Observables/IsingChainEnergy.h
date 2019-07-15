@@ -6,12 +6,15 @@
 namespace VMC {
 namespace Observables {
 
+// Ising chain energy functor
+// =============================================================================
+
 struct IsingChainEnergy : Observable {
   IsingChainEnergy(
-    const std::string& n, 
-    const size_t& bs, 
-    const double& j,
-    const double& h
+    const std::string& n, // observable name 
+    const size_t& bs,     // binsize for LocalObservable
+    const double& j,      // zz exchange
+    const double& h       // transverse magnetic field
   ) : Observable(n, bs) {
     coeffs.push_back(j);
     coeffs.push_back(h);
@@ -23,7 +26,9 @@ struct IsingChainEnergy : Observable {
   );
 };
 
-}
-}
+// =============================================================================
+
+} // namespace Observables
+} // namespace VMC
 
 #endif // ISING_CHAIN_ENERGY_H

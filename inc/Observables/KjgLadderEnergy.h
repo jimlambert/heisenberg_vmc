@@ -1,25 +1,25 @@
-#ifndef HEISENBERG_ENERGY_H
-#define HEISENBERG_ENERGY_H
+#ifndef KJG_LADDER_ENERGY_H
+#define KJG_LADDER_ENERGY_H
 
 #include "AbstractObservable.h"
 
 namespace VMC {
 namespace Observables {
 
-// Heisenberg chain energy functor
+// KJG ladder energy functor
 // =============================================================================
 
-struct HeisenbergChainEnergy : Observable {
-  HeisenbergChainEnergy(
+struct KjgLadderEnergy : Observable {
+  KjgLadderEnergy(
     const std::string &n, // name of observable
-    const size_t& bs,     // binsize for LocalObservable
-    const double& jz,     // j(i)=spin exchange along ith axis
-    const double& jx,     // .
-    const double& jy      // .
+    const size_t& bs,     // binsize 
+    const double& j,      // heisenberg exchange
+    const double& k,      // kitaev exchange
+    const double& g       // symmetric off-diagonal exchange
   ) : Observable(n, bs) {
-    coeffs.push_back(jz);
-    coeffs.push_back(jx);
-    coeffs.push_back(jy);
+    coeffs.push_back(j);
+    coeffs.push_back(k);
+    coeffs.push_back(g);
   }
   void operator()(
     const BasisState&, 
@@ -33,4 +33,4 @@ struct HeisenbergChainEnergy : Observable {
 } // namespace Observables
 } // namespace VMC
 
-#endif // HEISENBERG_ENERGY_H
+#endif // KJG_LADDER_ENERGY_H

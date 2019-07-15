@@ -37,7 +37,6 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
   size_t s1=(it)->site1[1];
   size_t c2=(it)->site2[0];
   size_t s2=(it)->site2[1];
-  size_t dc=c1-c2;
   size_t ds=s1-s2;
   bool   ti=(it)->trans_inv;
   if(ti) {  // translation invariant case
