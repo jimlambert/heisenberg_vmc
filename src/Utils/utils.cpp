@@ -47,5 +47,10 @@ double compute_dj_flip(
   return total;
 }
 
+
+double ladder_site(const size_t& nr, const size_t& ci, const size_t& si) {
+  return (ci*nr) + si;
+}
+
 } // namespace VMC
 } // namespace Utls

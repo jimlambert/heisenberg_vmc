@@ -26,9 +26,9 @@ class BasisState {
   typedef list_t::size_type        lindex_t;
   
   private:
-    size_t            _size;      // system size in reduced bases
-    state_t           _spinstate; // spin state in the S_z basis
-    list_t            _operslist; // positions of creation operators
+    size_t              _size;      // system size in reduced bases
+    state_t             _spinstate; // spin state in the S_z basis
+    list_t              _operslist; // positions of creation operators
   public:
     
     BasisState(const size_t&);

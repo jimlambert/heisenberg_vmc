@@ -13,11 +13,13 @@ struct KjgLadderEnergy : Observable {
   KjgLadderEnergy(
     const std::string &n, // name of observable
     const size_t& bs,     // binsize 
-    const double& j,      // heisenberg exchange
+    const double& jl,     // heisenberg exchange for leg
+    const double& jr,     // heisenberg exchange for rung
     const double& k,      // kitaev exchange
     const double& g       // symmetric off-diagonal exchange
   ) : Observable(n, bs) {
-    coeffs.push_back(j);
+    coeffs.push_back(jl);
+    coeffs.push_back(jr);
     coeffs.push_back(k);
     coeffs.push_back(g);
   }

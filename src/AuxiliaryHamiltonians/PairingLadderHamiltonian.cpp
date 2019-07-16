@@ -41,7 +41,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
   bool   ti=(it)->trans_inv;
   if(ti) {  // translation invariant case
     // Up spin loop
-    for(size_t i=0; i<_nrungs/2; i++) {
+   for(size_t i=0; i<_nrungs/2; i++) {
       double bfactor=1.0;
       size_t j=(i+ds)%(_nrungs/2);
       if(((i+ds)>=(_nrungs/2)) && !_bc) bfactor=-1.0;
