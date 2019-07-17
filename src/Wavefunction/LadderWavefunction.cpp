@@ -1,13 +1,14 @@
 #include <cmath>
-#include "Wavefunction.h"
+#include "utils.h"
+#include "LadderWavefunction.h"
 
 namespace VMC {
 namespace Wavefunctions {
 
 // Constructor
 // =============================================================================
-SpinWavefunction::SpinWavefunction (
-  const size_t&     l,   // system size
+LadderWavefunction::LadderWavefunction (
+  const size_t&     nr,  // number of rungs
   ParamListSPtr&    plp, // unique pointer to parameter list
   AuxHamUPtr&       ahp, // unique pointer to auxiliary Hamiltonian
   ObsUPtr&          erg, // unique pointer to energy functor
@@ -15,11 +16,12 @@ SpinWavefunction::SpinWavefunction (
   const std::string& on  // name of file for observables
 ) : 
   _sfac(1),
-  _size(l), 
+  _nrungs(nr), 
+  _size(2*nr),
   _jas_sum(0.0),
   _par_lst_ptr(plp),
   _aux_ham_ptr(std::move(ahp)),
-  _state(l),
+  _state(nr*2),
   _varfile_name(vn),
   _obsfile_name(on) {
  
@@ -61,7 +63,7 @@ SpinWavefunction::SpinWavefunction (
 // =============================================================================
 
 // output streams --------------------------------------------------------------
-void SpinWavefunction::_setup_varfile() {
+void LadderWavefunction::_setup_varfile() {
   _varfile_name=_varfile_name+".dat";
   _varfile_output.open(_varfile_name, std::ofstream::out | std::ios::trunc);  
   for(size_t i=0; i<_par_lst_ptr->npar(); i++) {
@@ -83,7 +85,7 @@ void SpinWavefunction::_setup_varfile() {
 }
 
 
-void SpinWavefunction::_update_varfile() {
+void LadderWavefunction::_update_varfile() {
   _varfile_output.open(_varfile_name, std::ios::app);
   for(size_t i=0; i<_par_lst_ptr->npar(); i++) {
     _varfile_output << std::setw(FILE_COLUMN_WIDTH) 
@@ -97,7 +99,7 @@ void SpinWavefunction::_update_varfile() {
 }
 
 
-void SpinWavefunction::_update_obsfile(const size_t& i) {
+void LadderWavefunction::_update_obsfile(const size_t& i) {
   std::string curr_obs=_obsfile_name+std::to_string(i)+".dat";
   size_t nbins=(*_obsvec[0]).local_meas.nbins();
   _obsfile_output.open(curr_obs, std::ofstream::out | std::ios::trunc);
@@ -135,23 +137,39 @@ void SpinWavefunction::_update_obsfile(const size_t& i) {
 }
 
 // setup functions -------------------------------------------------------------
-void SpinWavefunction::_init_state() {
+void LadderWavefunction::_init_state() {
   _state.refresh();  
-  for(size_t i=0; i<_size; i++) {
+  // spins on top legs
+  int counter=0;
+  for(size_t i=0; i<_nrungs; i++) {
     double rand_num=_rand_num(_mteng);
     if(rand_num<0.5) {
       _state[i]=1;
-      _state(i)=i+1;
+      _state(i)=counter+1;
     }
     else {
       _state[i]=-1;
-      _state(i+_size)=i+1;
+      _state(i+_nrungs)=counter+1;
     }
+    counter++;
+  } 
+  // spins on bottom legs
+  for(size_t i=0; i<_nrungs; i++) {
+    double rand_num=_rand_num(_mteng);
+    if(rand_num<0.5) {
+      _state[i+_nrungs]=1;
+      _state(i+2*_nrungs)=counter+1;
+    }
+    else {
+      _state[i+_nrungs]=-1;
+      _state(i+3*_nrungs)=counter+1;
+    }
+    counter++;
   } 
 }
 
 
-void SpinWavefunction::_reinit_gmat() {
+void LadderWavefunction::_reinit_gmat() {
   Eigen::MatrixXcd projmat(_size, _size);
   Eigen::MatrixXcd redmat(2*_size, _size);
   redmat=_aux_ham_ptr->get_reduced_matrix(_size);
@@ -167,7 +185,7 @@ void SpinWavefunction::_reinit_gmat() {
 }
 
 
-void SpinWavefunction::_clear_obs() {
+void LadderWavefunction::_clear_obs() {
   for(auto it=_obsvec.begin(); it!=_obsvec.end(); it++) {
     (*it)->local_meas.clear();
   }
@@ -177,7 +195,7 @@ void SpinWavefunction::_clear_obs() {
 }
 
 
-void SpinWavefunction::_compute_jas_sum() {
+void LadderWavefunction::_compute_jas_sum() {
   // compute initial value of Jastrow sum
   for(size_t i=0; i<_par_lst_ptr->njas(); i++) {
     size_t dr=_par_lst_ptr->jas(i).dr;
@@ -189,7 +207,7 @@ void SpinWavefunction::_compute_jas_sum() {
 }
 
 
-double SpinWavefunction::_dj_sum(const size_t& r, const int& ds) {
+double LadderWavefunction::_dj_sum(const size_t& r, const int& ds) {
   double total=0.0;
   for(size_t i=0; i<_par_lst_ptr->njas(); i++) {
     size_t dr=_par_lst_ptr->jas(i).dr;
@@ -202,7 +220,7 @@ double SpinWavefunction::_dj_sum(const size_t& r, const int& ds) {
 }
 
 // update functions ------------------------------------------------------------
-void SpinWavefunction::_flipspin(const int& r) {
+void LadderWavefunction::_flipspin(const int& r) {
   size_t iexpos, nexpos, lindex;
   int ds;
   if(_state[r]==1) {
@@ -238,7 +256,7 @@ void SpinWavefunction::_flipspin(const int& r) {
 }
 
 
-void SpinWavefunction::_sweep() {
+void LadderWavefunction::_sweep() {
   for(size_t i=0; i<2*_size; i++) {
     int rand_pos=(*_rand_pos)(_mteng);
     _flipspin(rand_pos);   
@@ -248,7 +266,7 @@ void SpinWavefunction::_sweep() {
 }
 
 
-void SpinWavefunction::_update_params(const double& delta) {
+void LadderWavefunction::_update_params(const double& delta) {
   
   size_t npar=_par_lst_ptr->npar();
   Eigen::MatrixXd s(npar,npar);
@@ -353,7 +371,7 @@ void SpinWavefunction::_update_params(const double& delta) {
 // Public members functions
 // =============================================================================
 
-void SpinWavefunction::optimize(
+void LadderWavefunction::optimize(
   const size_t& equil_steps, 
   const size_t& simul_steps, 
   const size_t& opt_steps,
@@ -406,7 +424,7 @@ void SpinWavefunction::optimize(
 }
 
 // output functions ------------------------------------------------------------
-void SpinWavefunction::print_state() {
+void LadderWavefunction::print_state() {
   std::cout << "Spin state:" << std::endl;
   for(size_t i=0; i<_size; i++) 
    std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
@@ -420,7 +438,7 @@ void SpinWavefunction::print_state() {
 }
 
 
-void SpinWavefunction::print_spins() {
+void LadderWavefunction::print_spins() {
   for(size_t i=0; i<_size; i++) 
    std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
              << _state[i];

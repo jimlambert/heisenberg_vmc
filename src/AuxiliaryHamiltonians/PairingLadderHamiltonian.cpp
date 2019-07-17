@@ -37,7 +37,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
   size_t s1=(it)->site1[1];
   size_t c2=(it)->site2[0];
   size_t s2=(it)->site2[1];
-  size_t ds=s1-s2;
+  int ds=abs(s1-s2);
   bool   ti=(it)->trans_inv;
   if(ti) {  // translation invariant case
     // Up spin loop
@@ -86,7 +86,7 @@ void PairingLadderHamiltonian::_set_pairing_vmat(const AuxParamUPtr& it) {
   size_t s1=(it)->site1[1];
   size_t c2=(it)->site2[0];
   size_t s2=(it)->site2[1];
-  size_t ds=s1-s2;
+  int ds=abs(s1-s2);
   bool   ti=(it)->trans_inv;
   if(ti) { // translation invariant
     for(size_t i=0; i<(_nrungs/2); i++) {

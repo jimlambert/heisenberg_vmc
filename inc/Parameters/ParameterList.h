@@ -31,7 +31,7 @@ class ParameterList {
     void push_aux_param(AuxParamUPtr);
     void push_jas_param(JasParamUPtr);
 
-    // build parameters directly
+    // build parameters directly in list using factory methods
     void build_aux_param(
       ParameterSubtype   apt, // auxiliary parameter type
       const std::string& n,   // parameter name 
@@ -41,12 +41,34 @@ class ParameterList {
       const bool&        ti,  // translation invariant (true)
       const size_t&      bs   // binsize for local_meas 
     );
+    void build_aux_param(
+      ParameterSubtype   apt, // auxiliary parameter type
+      const std::string& n,   // parameter name 
+      const double&      v,   // value of parameter
+      const size_t&      x1,  // parameter site i
+      const size_t&      y1,  // parameter site j
+      const size_t&      x2,  // parameter site i2
+      const size_t&      y2,  // parameter site j2
+      const bool&        ti,  // translation invariant (true)
+      const size_t&      bs   // binsize for local_meas 
+    );
     void build_jas_param(
       ParameterSubtype   jpt, // subtype for Jastrow parameter
       const std::string& n,   // parameter name 
       const double&      v,   // value of parameter
       const size_t&      s,   // parameter site i
       const size_t&      d,   // parameter site j
+      const bool&        ti,  // translation invariant (true)
+      const size_t&      bs   // binsize for local_meas 
+    );
+    void build_jas_param(
+      ParameterSubtype   jpt, // subtype for Jastrow parameter
+      const std::string& n,   // parameter name 
+      const double&      v,   // value of parameter
+      const size_t&      x1,  // parameter site i1
+      const size_t&      y1,  // parameter site j1
+      const size_t&      x2,  // parameter site i2
+      const size_t&      y2,  // parameter site j2
       const bool&        ti,  // translation invariant (true)
       const size_t&      bs   // binsize for local_meas 
     );

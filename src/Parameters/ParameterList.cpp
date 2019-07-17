@@ -36,6 +36,23 @@ void ParameterList::build_aux_param(
   _naux+=1;
 }
 
+void ParameterList::build_aux_param(
+  ParameterSubtype   apt, // auxiliary parameter type
+  const std::string& n,   // parameter name 
+  const double&      v,   // value of parameter
+  const size_t&      x1,   // parameter site 
+  const size_t&      y1,   // change in position
+  const size_t&      x2,   // parameter site 
+  const size_t&      y2,   // change in position
+  const bool&        ti,  // translation invariant (true)
+  const size_t&      bs   // binsize for local_meas 
+) {
+  AuxParamUPtr auxptr=std::make_unique<AuxiliaryParameter>
+                      (apt, n, v, x1, y1, x2, y2, ti, bs);
+  _aux_params.push_back(std::move(auxptr)); 
+  _naux+=1;
+}
+
 void ParameterList::build_jas_param(
   ParameterSubtype   jpt, // subtype for Jastrow parameter
   const std::string& n,   // parameter name 
@@ -50,6 +67,33 @@ void ParameterList::build_jas_param(
     {
       JasParamUPtr jasptr=std::make_unique<SpinSpin>
                           (n, v, s, d, ti, bs);
+      _jas_params.push_back(std::move(jasptr));
+      _njas+=1;
+    }
+    break;
+    default:
+      std::cout << "Unknown parameters in build_jas_param" << std::endl;
+      exit(1);
+    break;  
+  }
+}
+
+void ParameterList::build_jas_param(
+  ParameterSubtype   jpt, // subtype for Jastrow parameter
+  const std::string& n,   // parameter name 
+  const double&      v,   // value of parameter
+  const size_t&      x1,   // parameter site i
+  const size_t&      y1,   // parameter site j
+  const size_t&      x2,   // parameter site i
+  const size_t&      y2,   // parameter site j
+  const bool&        ti,  // translation invariant (true)
+  const size_t&      bs   // binsize for local_meas   
+) {
+  switch(jpt) {
+    case SPIN:
+    {
+      JasParamUPtr jasptr=std::make_unique<SpinSpin>
+                          (n, v, x1, y1, x2, y2, ti, bs);
       _jas_params.push_back(std::move(jasptr));
       _njas+=1;
     }
