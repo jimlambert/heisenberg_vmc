@@ -57,7 +57,7 @@ class LadderWavefunction {
     double _dj_sum(const size_t&, const int&);
 
     // update functions --------------------------------------------------------
-    void _flipspin(const int&);
+    void _flipspin(const size_t&);
     void _exchange(const int&, const int&);
     void _sweep();
     void _update_params(const double&);

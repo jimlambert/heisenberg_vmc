@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
   // ==========================================================================
   // Wavefunction
   // ========================================================================== 
+ 
   VMC::Wavefunctions::LadderWavefunction test_wave_func
   (
     L, 
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
     "../vmc-dat/n4obsvals"  
   ); 
 
-  //test_wave_func.optimize(equil_steps, simul_steps, opt_steps, df);
+  test_wave_func.optimize(equil_steps, simul_steps, opt_steps, df);
   //par_lst_ptr->report_aux_params();
   //par_lst_ptr->report_jas_params();
   

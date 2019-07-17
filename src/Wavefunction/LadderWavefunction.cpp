@@ -53,9 +53,10 @@ LadderWavefunction::LadderWavefunction (
   //// build Green's function matrix
   //_gmat=redmat*(projmat.inverse());
   //_compute_jas_sum();
-  //std::cout << _jas_sum << std::endl;
+  ////std::cout << _jas_sum << std::endl;
   //print_state();
   //(*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec()); 
+  std::cout << "Wavefunction initialized successfully" << std::endl;
 }
 
 // =============================================================================
@@ -174,11 +175,9 @@ void LadderWavefunction::_reinit_gmat() {
   Eigen::MatrixXcd redmat(2*_size, _size);
   redmat=_aux_ham_ptr->get_reduced_matrix(_size);
   for(size_t ri=0; ri<_size; ri++) {
-    int expos;
-    if(_state[ri]==1) expos=ri;
-    else expos=ri+_size;
+    size_t pos=_state.find(ri+1);
     for(size_t rj=0; rj<_size; rj++) {
-      projmat(ri, rj) = redmat(expos, rj);
+      projmat(ri, rj) = redmat(pos, rj);
     }
   }
   _gmat = redmat*projmat.inverse();
@@ -220,22 +219,36 @@ double LadderWavefunction::_dj_sum(const size_t& r, const int& ds) {
 }
 
 // update functions ------------------------------------------------------------
-void LadderWavefunction::_flipspin(const int& r) {
+void LadderWavefunction::_flipspin(const size_t& r) {
   size_t iexpos, nexpos, lindex;
   int ds;
-  if(_state[r]==1) {
-    iexpos=r;
-    nexpos=iexpos+_size;
-    ds=-2;
+  if(r<_nrungs) {
+    if(_state[r]==1) {
+      iexpos=r;
+      nexpos=r+_nrungs;
+      ds=-2;
+    }
+    else {
+      iexpos=r+_nrungs;
+      nexpos=r;
+      ds=2;
+    }
   }
   else {
-    iexpos=r+_size;
-    nexpos=r;
-    ds=2;
+    if(_state[r]==1) {
+      iexpos=(r%_nrungs)+2*_nrungs;
+      nexpos=(r%_nrungs)+3*_nrungs;
+      ds=-2;
+    }
+    else {
+      iexpos=(r%_nrungs)+3*_nrungs;
+      nexpos=(r%_nrungs)+2*_nrungs;
+      ds=2;
+    }
   }
   lindex=_state(iexpos)-1;
-  double dj=_dj_sum(r, ds);
-  double amp=fabs(std::exp(dj)*_gmat(nexpos, lindex));
+  //double dj=_dj_sum(r, ds);
+  double amp=fabs(_gmat(nexpos, lindex));
   double rand_num=_rand_num(_mteng);
   if(rand_num<amp*amp) {
     _state(nexpos)=_state(iexpos);
@@ -251,7 +264,7 @@ void LadderWavefunction::_flipspin(const int& r) {
       newgmat(i,j)=_gmat(i,j)-(num/den)*(_gmat(nexpos,j)-d);
     }
     _gmat=newgmat;
-    _jas_sum=_jas_sum+dj;
+    //_jas_sum=_jas_sum+dj;
   }
 }
 
@@ -259,7 +272,7 @@ void LadderWavefunction::_flipspin(const int& r) {
 void LadderWavefunction::_sweep() {
   for(size_t i=0; i<2*_size; i++) {
     int rand_pos=(*_rand_pos)(_mteng);
-    _flipspin(rand_pos);   
+    _flipspin(rand_pos);  
   }
   _reinit_gmat();
   _compute_jas_sum(); 
@@ -396,11 +409,13 @@ void LadderWavefunction::optimize(
     // build Green's function matrix
     _gmat=redmat*(projmat.inverse());
     _compute_jas_sum();
-    _clear_obs();
-    for(size_t equil=0; equil<equil_steps; equil++) _sweep();  
+    _clear_obs(); 
+    for(size_t equil=0; equil<equil_steps; equil++){
+      _sweep();
+    }
     for(size_t simul=0; simul<simul_steps; simul++) {
       _sweep();
-      //print_spins();
+      
       // measure expectation values for variational parameters
       for(size_t i=0; i<_par_lst_ptr->npar(); i++) 
         (*_par_lst_ptr)[i](_state, _gmat);
@@ -423,12 +438,15 @@ void LadderWavefunction::optimize(
   } // optimization loop
 }
 
+
 // output functions ------------------------------------------------------------
 void LadderWavefunction::print_state() {
   std::cout << "Spin state:" << std::endl;
-  for(size_t i=0; i<_size; i++) 
-   std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
+  for(size_t i=0; i<_size; i++) {
+    if(i==_nrungs) std::cout << std::endl;
+    std::cout << std::setw(STATE_WIDTH) << std::left << std::setfill(' ')
              << _state[i];
+  } 
   std::cout << std::endl; 
   std::cout << "Operator list:" << std::endl;
   for(size_t i=0; i<2*_size; i++) 
