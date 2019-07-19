@@ -80,6 +80,57 @@ void KjgLadderEnergy::operator()(
     size_t i=Utils::ladder_site(nrungs, 0, s);
     size_t j=Utils::ladder_site(nrungs, 1, s);
     total+=0.25*(Jr+K)*state[i]*state[j];
+    if(state[i]==state[j]) continue;
+    if (state[i]==1){ // interchain coupling
+      size_t iexpos1, iexpos2, nexpos1, nexpos2;
+      if(i<nrungs) {
+        iexpos1=i;
+        nexpos1=i+nrungs;
+      }
+      else {
+        iexpos1=(i%nrungs)+2*nrungs;
+        nexpos1=(i%nrungs)+3*nrungs;
+      }
+      if(j<nrungs) {
+        iexpos2=j+nrungs;
+        nexpos2=j;
+      }
+      else {
+        iexpos2=(j%nrungs)+3*nrungs;
+        nexpos2=(j%nrungs)+2*nrungs;
+      }
+      size_t lindex1=state(iexpos1)-1;
+      size_t lindex2=state(iexpos2)-1;
+      std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
+        - gmat(nexpos2,lindex1)*(gmat(nexpos1, lindex2));
+      //double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, -1, 1); 
+      total-=(Jl*0.5 + K*0.25)*det;
+    }
+    else {
+      size_t iexpos1, iexpos2, nexpos1, nexpos2;
+      if(i<nrungs) {
+        iexpos1=i+nrungs;
+        nexpos1=i;
+      }
+      else {
+        iexpos1=(i%nrungs)+3*nrungs;
+        nexpos1=(i%nrungs)+2*nrungs;
+      }
+      if(j<nrungs) {
+        iexpos2=j;
+        nexpos2=j+nrungs;
+      }
+      else {
+        iexpos2=(j%nrungs)+2*nrungs;
+        nexpos2=(j%nrungs)+3*nrungs;
+      }
+      size_t lindex1=state(iexpos1)-1;
+      size_t lindex2=state(iexpos2)-1;
+      std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
+        - gmat(nexpos2,lindex1)*gmat(nexpos1, lindex2);
+      //double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, 1, -1); 
+      total-=(Jl*0.5 + K*0.25)*det;
+    }
   }
   local_meas.push(total);
 }

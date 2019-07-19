@@ -53,9 +53,7 @@ LadderWavefunction::LadderWavefunction (
   //// build Green's function matrix
   //_gmat=redmat*(projmat.inverse());
   //_compute_jas_sum();
-  ////std::cout << _jas_sum << std::endl;
-  //print_state();
-  //(*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec()); 
+  //std::cout << _jas_sum << std::endl;
   std::cout << "Wavefunction initialized successfully" << std::endl;
 }
 

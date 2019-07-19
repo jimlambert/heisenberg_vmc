@@ -45,6 +45,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
       double bfactor=1.0;
       size_t j=(i+ds)%(_nrungs/2);
       if(((i+ds)>=(_nrungs/2)) && !_bc) bfactor=-1.0;
+      if(c1!=c2) bfactor=1.0;
       size_t n=_pair2index(c1, i);
       size_t m=_pair2index(c2, j);
       (it)->vmat(n,m)+=bfactor;
@@ -55,6 +56,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
       double bfactor=1.0;
       size_t j=((i+ds)%_nrungs)+(_nrungs/2)*(size_t)((i+ds)/_nrungs);
       if(((i+ds)>=_nrungs) && !_bc) bfactor=-1.0;
+      if(c1!=c2) bfactor=1.0;
       size_t n=_pair2index(c1, i);
       size_t m=_pair2index(c2, j);
       (it)->vmat(n,m)+=-1*bfactor;
@@ -65,6 +67,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
     double bfactor=1.0;
     if(s1<_nrungs/2) { // up spin
       if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+      if(c1!=c2) bfactor=1.0;
       size_t n=_pair2index(c1, s1);
       size_t m=_pair2index(c2, s2);
       (it)->vmat(n,m)+=bfactor;
@@ -72,6 +75,7 @@ void PairingLadderHamiltonian::_set_hopping_vmat(const AuxParamUPtr& it) {
     }
     else { // down spin
       if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+      if(c1!=c2) bfactor=1.0;
       size_t n=_pair2index(c1, s1);
       size_t m=_pair2index(c2, s2);
       (it)->vmat(n,m)+=-1*bfactor;

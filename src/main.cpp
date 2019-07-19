@@ -28,9 +28,9 @@ int main(int argc, char* argv[]) {
 
   // Initial setup
   // ==========================================================================
-  size_t L=2;
+  size_t L=4;
   size_t equil_steps=5000;
-  size_t simul_steps=10000;
+  size_t simul_steps=20000;
   size_t opt_steps=30;
   double df=0.1;
   VMC::ParamListSPtr par_lst_ptr=make_shared<VMC::Parameters::ParameterList>();
@@ -52,18 +52,20 @@ int main(int argc, char* argv[]) {
   // KJG ladder model variational parameters
   par_lst_ptr->build_aux_param(HOPPING, "hopp11", rand_num(mteng), 0, 0, 0, 1, true, 100);
   par_lst_ptr->build_aux_param(HOPPING, "hopp12", rand_num(mteng), 1, 0, 1, 1, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hopp1r", rand_num(mteng), 0, 0, 1, 0, true, 100);
   par_lst_ptr->build_aux_param(PAIRING, "pair11", rand_num(mteng), 0, 0, 0, 1, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair12", rand_num(mteng), 0, 0, 0, 2, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair13", rand_num(mteng), 0, 0, 0, 3, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair12", rand_num(mteng), 0, 0, 0, 2, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair13", rand_num(mteng), 0, 0, 0, 3, true, 100);
   par_lst_ptr->build_aux_param(PAIRING, "pair21", rand_num(mteng), 1, 0, 1, 1, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair22", rand_num(mteng), 1, 0, 1, 2, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair23", rand_num(mteng), 1, 0, 1, 3, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair22", rand_num(mteng), 1, 0, 1, 2, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair23", rand_num(mteng), 1, 0, 1, 3, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair1r", rand_num(mteng), 0, 0, 1, 0, true, 100);
 
   //par_lst_ptr->build_jas_param(SPIN, "spin1", 0.1, 0, 1, true, 100);
   //par_lst_ptr->build_jas_param(SPIN, "spin1", 0.1, 0, 2, true, 100);
   //par_lst_ptr->build_jas_param(SPIN, "spin2", pos_rand_num(mteng), 0, 2, true, 100);
   
-  par_lst_ptr->report_aux_params();
+  //par_lst_ptr->report_aux_params();
   //par_lst_ptr->report_jas_params(); 
   // ==========================================================================
   // Choose energy to minimize
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]) {
   //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
   //                      ("Heisenberg-Energy", 100, 1.0, 1.0, 1.0); 
   VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::KjgLadderEnergy>
-                        ("KJG-Energy", 100, 1.0, 0.0, 0.0, 0.0); 
+                        ("KJG-Energy", 100, 1.0, 1.0, 0.0, 0.0); 
   // ==========================================================================
   // Choose observables
   // ==========================================================================
@@ -86,9 +88,9 @@ int main(int argc, char* argv[]) {
   //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::BCSChainHam>
   //                            (true, 2*L, par_lst_ptr->aux_vec());
   VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::BCSLadderHam>
-                              (true, 2*L, par_lst_ptr->aux_vec()); 
+                              (false, 2*L, par_lst_ptr->aux_vec()); 
 
-  //cout << aux_ham_ptr->get_matrix() << endl;
+  //std::cout << aux_ham_ptr->get_matrix() << std::endl;
   // ==========================================================================
   // Wavefunction
   // ========================================================================== 
