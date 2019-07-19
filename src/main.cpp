@@ -28,11 +28,11 @@ int main(int argc, char* argv[]) {
 
   // Initial setup
   // ==========================================================================
-  size_t L=4;
+  size_t L=6;
   size_t equil_steps=5000;
   size_t simul_steps=20000;
-  size_t opt_steps=30;
-  double df=0.1;
+  size_t opt_steps=50;
+  double df=0.05;
   VMC::ParamListSPtr par_lst_ptr=make_shared<VMC::Parameters::ParameterList>();
   std::random_device rd;
   std::mt19937 mteng(rd());
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
   //VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::BCSChainHam>
   //                            (true, 2*L, par_lst_ptr->aux_vec());
   VMC::AuxHamUPtr aux_ham_ptr=make_unique<VMC::BCSLadderHam>
-                              (false, 2*L, par_lst_ptr->aux_vec()); 
+                              (true, 2*L, par_lst_ptr->aux_vec()); 
 
   //std::cout << aux_ham_ptr->get_matrix() << std::endl;
   // ==========================================================================
