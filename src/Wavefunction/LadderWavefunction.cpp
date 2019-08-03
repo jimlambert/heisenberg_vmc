@@ -320,12 +320,16 @@ void LadderWavefunction::_update_params(const double& delta) {
   //  f_alt(ka)=f(ka)/std::sqrt(s(ka,ka));
   //  if(f(ka)<1e-5) f_alt(ka)=0;
   //}
-  for(size_t i=0; i<npar; i++) s(i,i)+=1e-3;
+  for(size_t i=0; i<npar; i++) s(i,i)+=1e-2;
   Eigen::VectorXd da(npar);
   std::cout << "dE:" << '\t' 
             << -1.0*delta*f.transpose()*s.inverse()*f
             << std::endl;
-  da=s.colPivHouseholderQr().solve(delta*f);
+  //da=s.colPivHouseholderQr().solve(delta*f);
+  Eigen::FullPivHouseholderQR<Eigen::MatrixXd> ssolve(npar,npar);
+  ssolve.setThreshold(1e-4);
+  ssolve.compute(s);
+  da=ssolve.solve(f);
   for(size_t k=0; k<npar; k++) 
     (*_par_lst_ptr)[k].val+=da[k];
   std::cout << "dA:" << std::endl;

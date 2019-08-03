@@ -39,6 +39,7 @@ class SpinWavefunction {
     int               _sfac; // factor determine sign in front of basis state
     size_t            _size; // size of the spin model
     double            _jas_sum; // running total of Jastrow factors 
+    double            _cutoff;  
     Eigen::MatrixXcd  _gmat; // Green's function matrix 
     ParamListSPtr     _par_lst_ptr; // pointer to parameter list
     AuxHamSPtr        _aux_ham_ptr; // pointer to auxiliary Hamiltonian
@@ -69,6 +70,7 @@ class SpinWavefunction {
   public:
     SpinWavefunction(
       const size_t&,      // system size
+      const double&,      // cutoff
       ParamListSPtr&,     // unique pointer to parameter list
       AuxHamUPtr&,        // unique pointer to auxiliary Hamiltonian
       ObsUPtr&,           // unique pointer to energy functor

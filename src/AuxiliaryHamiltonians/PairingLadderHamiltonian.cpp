@@ -97,6 +97,7 @@ void PairingLadderHamiltonian::_set_pairing_vmat(const AuxParamUPtr& it) {
       double bfactor=1.0;
       size_t j=((i+ds)%(_nrungs/2))+_nrungs/2;
       if(((i+ds)>=(_nrungs/2)) && !_bc) bfactor=-1;
+      if(c1==c2) bfactor=1;
       size_t n=_pair2index(c1, i);
       size_t m=_pair2index(c2, j);
       (it)->vmat(n,m)+=bfactor;
@@ -106,6 +107,7 @@ void PairingLadderHamiltonian::_set_pairing_vmat(const AuxParamUPtr& it) {
   else { // non-translation invariant
     double bfactor=1.0;
     if((((int)s2-(int)s1)<0) && !_bc) bfactor=-1.0;
+    if(c1==c2) bfactor=1;
     size_t n=_pair2index(c1, s1);
     size_t m=_pair2index(c2, s2);
     (it)->vmat(n,m)+=bfactor;

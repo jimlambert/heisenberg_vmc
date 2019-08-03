@@ -52,5 +52,18 @@ double ladder_site(const size_t& nr, const size_t& ci, const size_t& si) {
   return (ci*nr) + si;
 }
 
+
+void init_noise(const size_t& extd_size, AuxParamUVec& noise_vec) {
+  std::random_device rd;
+  std::mt19937 mteng(rd());
+  std::uniform_real_distribution<double> rand_num(-1.0, 1.0);
+  for(size_t i=0; i<extd_size; i++) {
+    std::string name="noise"+std::to_string(i);
+    AuxParamUPtr temp_ptr=std::make_unique<Parameters::AuxiliaryParameter>
+      (VMC::Parameters::ONSITE, name, rand_num(mteng), i, 0, false, 100);
+    noise_vec.push_back(std::move(temp_ptr));
+  } 
+}
+
 } // namespace VMC
 } // namespace Utls

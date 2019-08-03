@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "UpdateInfo.h"
+#include "SpinState.h"
 #include "BasisState.h"
 #include "ParameterList.h"
 
@@ -32,6 +34,10 @@ double compute_dj_flip(
 
 
 double ladder_site(const size_t&, const size_t&,  const size_t&);
+
+UpdateInfo flip_spin(const SpinState&, const size_t&);
+
+void init_noise(const size_t& extd_size, AuxParamUVec&);
 
 // =============================================================================
 

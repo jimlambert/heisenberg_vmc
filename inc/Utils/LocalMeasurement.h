@@ -58,6 +58,15 @@ class LocalMeasurement {
       for(auto it=_binaves.begin(); it!=_binaves.end(); it++) total += *it;
       return (T)total/(T)_nbins;
     }
+
+    T var() {
+      T total=0.0;
+      T average=ave();
+      for(auto it=_binaves.begin(); it!=_binaves.end(); it++) {
+        total+=(*it-average)*(*it-average);
+      }
+      return std::sqrt((T)(total)/(T)_nbins);
+    }
     
     // define access operators including iterators to underlying container. 
     T operator [](const size_t& i) const {

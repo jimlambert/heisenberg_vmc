@@ -19,7 +19,11 @@ void IsingChainEnergy::operator()(
       size_t lindex=state(iexpos)-1;
       std::complex<double> amp=gmat(nexpos, lindex);
       double dj=Utils::compute_dj_flip(state, jas_vec, i, -2);
-      total+=coeffs[1]*dj*amp;
+      total+=0.5*coeffs[1]*exp(dj)*amp;
+      //std::cout << "I:" << '\t' << iexpos << std::endl;
+      //std::cout << "K:" << '\t' << nexpos << std::endl;
+      //std::cout << "l:" << '\t' << lindex+1 << std::endl;
+      //std::cout << "amp:" << '\t' << amp << std::endl;
     }
     else {
       size_t iexpos=i+l;
@@ -27,9 +31,14 @@ void IsingChainEnergy::operator()(
       size_t lindex=state(iexpos)-1;
       std::complex<double> amp=gmat(nexpos, lindex);
       double dj=Utils::compute_dj_flip(state, jas_vec, i, 2);
-      total+=coeffs[1]*dj*amp;
+      total+=0.5*coeffs[1]*exp(dj)*amp;
+      //std::cout << "I:" << '\t' << iexpos << std::endl;
+      //std::cout << "K:" << '\t' << nexpos << std::endl;
+      //std::cout << "l:" << '\t' << lindex+1 << std::endl;
+      //std::cout << "amp:" << '\t' << amp << std::endl;
     }
   }
+  //std::cout << "Energy" << total << std::endl;
   local_meas.push(total);
 }
 

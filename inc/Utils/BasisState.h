@@ -33,7 +33,7 @@ class BasisState {
     
     BasisState(const size_t&);
     size_t find (const size_t&) const; // method returns position of lindex
-    void refresh(); // resest lists to have all zeros
+    void refresh(); // reset lists to have all zeros
 
     // access for spin state ---------------------------------------------------
     stateref_t       operator [](const sindex_t& i) {return _spinstate[i];}

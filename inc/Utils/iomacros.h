@@ -9,7 +9,7 @@
 #define FILE_COLUMN_WIDTH 20
 #define FILE_PRECISION    5
 #define INDENT_WIDTH      2
-#define STATE_WIDTH       4
+#define STATE_WIDTH       8
 
 // =============================================================================
 

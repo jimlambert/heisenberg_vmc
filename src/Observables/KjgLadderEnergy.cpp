@@ -104,7 +104,7 @@ void KjgLadderEnergy::operator()(
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*(gmat(nexpos1, lindex2));
       //double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, -1, 1); 
-      total-=(Jl*0.5 + K*0.25)*det;
+      total-=(Jr*0.5 + K*0.25)*det;
     }
     else {
       size_t iexpos1, iexpos2, nexpos1, nexpos2;
@@ -129,7 +129,7 @@ void KjgLadderEnergy::operator()(
       std::complex<double> det=gmat(nexpos1,lindex1)*gmat(nexpos2,lindex2)
         - gmat(nexpos2,lindex1)*gmat(nexpos1, lindex2);
       //double dj_sum=Utils::compute_dj_exchange(state, jas_vec, i, j, 1, -1); 
-      total-=(Jl*0.5 + K*0.25)*det;
+      total-=(Jr*0.5 + K*0.25)*det;
     }
   }
   local_meas.push(total);

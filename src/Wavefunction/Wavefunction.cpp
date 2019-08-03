@@ -1,4 +1,5 @@
 #include <cmath>
+#include "utils.h"
 #include "Wavefunction.h"
 
 namespace VMC {
@@ -8,6 +9,7 @@ namespace Wavefunctions {
 // =============================================================================
 SpinWavefunction::SpinWavefunction (
   const size_t&     l,   // system size
+  const double&     c,   // cutoff
   ParamListSPtr&    plp, // unique pointer to parameter list
   AuxHamUPtr&       ahp, // unique pointer to auxiliary Hamiltonian
   ObsUPtr&          erg, // unique pointer to energy functor
@@ -16,44 +18,55 @@ SpinWavefunction::SpinWavefunction (
 ) : 
   _sfac(1),
   _size(l), 
+  _cutoff(c),
   _jas_sum(0.0),
   _par_lst_ptr(plp),
   _aux_ham_ptr(std::move(ahp)),
   _state(l),
   _varfile_name(vn),
   _obsfile_name(on) {
- 
   // initialize random site generator
   _rand_pos=new std::uniform_int_distribution<>(0, _size-1);
 
   // add energy to observable vector
-  _obsvec.push_back(std::move(erg));
-  
+  _obsvec.push_back(std::move(erg));  
   
   // setup output file for variational parameters
   _setup_varfile();
   
-  //Eigen::MatrixXcd redmat(2*_size,_size);
-  //redmat=_aux_ham_ptr->get_reduced_matrix(_size);
-  //Eigen::MatrixXcd projmat(_size,_size);
-  //do {
-  // _init_state();
-  // for(size_t i=0; i<_size; i++) {
-  //   size_t pos=_state.find(i+1);
-  //   //if(_state[i]==1) pos=i;
-  //   //else pos=i+_size;
-  //   for(size_t j=0; j<_size; j++) {
-  //     projmat(i, j) = redmat(pos, j);
-  //   }
-  // }
-  //} while(fabs(projmat.determinant())<1e-12);
+  Eigen::MatrixXcd redmat(2*_size,_size);
+  redmat=_aux_ham_ptr->get_reduced_matrix(_size);
+  Eigen::MatrixXcd projmat(_size,_size);
+  do {
+   _init_state();
+   for(size_t i=0; i<_size; i++) {
+     size_t pos=_state.find(i+1);
+     for(size_t j=0; j<_size; j++) {
+       projmat(i, j) = redmat(pos, j);
+     }
+   }
+  } while(fabs(projmat.determinant())<1e-12);
+  // build Green's function matrix
+  _gmat=redmat*(projmat.inverse());
+  std::cout << "_gmat" << std::endl;
+  std::cout << _gmat << std::endl;  
+  print_state(); 
+  //std::cout << "redmat" << std::endl;
+  //std::cout << redmat << std::endl;
 
-  //// build Green's function matrix
-  //_gmat=redmat*(projmat.inverse());
+  //std::cout << "projmat" << std::endl;
+  //std::cout << projmat << std::endl;
+  //
+  //std::cout << "_gmat" << std::endl;
+  //std::cout << _gmat << std::endl;  
+  
+  _exchange(1, 0);
+  print_state();
+  std::cout << "_gmat" << std::endl;
+  std::cout << _gmat << std::endl;  
   //_compute_jas_sum();
-  //std::cout << _jas_sum << std::endl;
-  //print_state();
   //(*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec()); 
+  std::cout << "Wavefunction initialized" << std::endl;
 }
 
 // =============================================================================
@@ -156,14 +169,12 @@ void SpinWavefunction::_reinit_gmat() {
   Eigen::MatrixXcd redmat(2*_size, _size);
   redmat=_aux_ham_ptr->get_reduced_matrix(_size);
   for(size_t ri=0; ri<_size; ri++) {
-    int expos;
-    if(_state[ri]==1) expos=ri;
-    else expos=ri+_size;
+    size_t pos=_state.find(ri+1);
     for(size_t rj=0; rj<_size; rj++) {
-      projmat(ri, rj) = redmat(expos, rj);
+      projmat(ri, rj) = redmat(pos, rj);
     }
   }
-  _gmat = redmat*projmat.inverse();
+  _gmat=redmat*projmat.inverse();
 }
 
 
@@ -218,8 +229,9 @@ void SpinWavefunction::_flipspin(const int& r) {
   lindex=_state(iexpos)-1;
   double dj=_dj_sum(r, ds);
   double amp=fabs(std::exp(dj)*_gmat(nexpos, lindex));
+  //std::cout << "amp:" << '\t' << amp << std::endl;
   double rand_num=_rand_num(_mteng);
-  if(rand_num<amp*amp) {
+  if(rand_num<(amp*amp)) {
     _state(nexpos)=_state(iexpos);
     _state(iexpos)=0;
     _state[r]+=ds;
@@ -233,15 +245,68 @@ void SpinWavefunction::_flipspin(const int& r) {
       newgmat(i,j)=_gmat(i,j)-(num/den)*(_gmat(nexpos,j)-d);
     }
     _gmat=newgmat;
-    _jas_sum=_jas_sum+dj;
+    _jas_sum+=dj;
   }
 }
 
 
+void SpinWavefunction::_exchange(const int& s1, const int& s2) {
+  int spin1_old, iexpos1, iexpos2, nexpos1, nexpos2, ds1, ds2;
+  int lindex1_old;
+  size_t lindex1, lindex2;
+  double amp, rand_num, dj;
+  std::complex<double> det;
+  if(_state[s1]==1) { 
+    iexpos1=s1; 
+    nexpos1=s1+_size; 
+  }
+  else { 
+    iexpos1=s1+_size; 
+    nexpos1=s1; 
+  }
+  if(_state[s2]==1) { 
+    iexpos2=s2; 
+    nexpos2=s2+_size; 
+  }
+  else { 
+    iexpos2=s2+_size; 
+    nexpos2=s2; 
+  }
+   
+  if(_state[s1]==_state[s2]) { ds1=0; ds2=0; } 
+  else if(_state[s1]==1) { ds1=-2; ds2=2; }
+  else { ds1=2; ds2=-2; }
+  dj=Utils::compute_dj_exchange
+         (_state, _par_lst_ptr->jas_vec(), s1, s2, ds1, ds2);
+  lindex1=_state(iexpos1)-1;
+  lindex2=_state(iexpos2)-1;
+  det=(_gmat(nexpos1, lindex1)*_gmat(nexpos2,lindex2))
+     - (_gmat(nexpos1, lindex2)*_gmat(nexpos2, lindex1));
+  amp=fabs(std::exp(dj)*det);
+  rand_num=_rand_num(_mteng);
+  std::cout << "amplitude:" << '\t' << amp*amp << std::endl;
+  std::cout << "random number:" << '\t' << rand_num << std::endl;
+  if(rand_num<(amp*amp)) {
+    spin1_old=_state[s1];
+    _state[s1]=_state[s2];
+    _state[s2]=spin1_old;
+    lindex1_old=_state(iexpos1);
+    _state(iexpos1)=_state(iexpos2);
+    _state(iexpos2)=lindex1_old; 
+    // THIS IS A LAZY AND INEFFICIENT APPROACH
+    _reinit_gmat();
+    _jas_sum+=dj;
+  }
+}
+
 void SpinWavefunction::_sweep() {
   for(size_t i=0; i<2*_size; i++) {
     int rand_pos=(*_rand_pos)(_mteng);
-    _flipspin(rand_pos);   
+    _flipspin(rand_pos);  
+    int rand_pos1=(*_rand_pos)(_mteng);
+    int rand_pos2=(*_rand_pos)(_mteng);
+    if(rand_pos1==rand_pos2) continue;
+    else _exchange(rand_pos1, rand_pos2);
   }
   _reinit_gmat();
   _compute_jas_sum(); 
@@ -292,17 +357,25 @@ void SpinWavefunction::_update_params(const double& delta) {
   //  if(f(ka)<1e-5) f_alt(ka)=0;
   //}
   for(size_t i=0; i<npar; i++) s(i,i)+=1e-3;
+  //s=s+(1e-3)*s;
+ 
   Eigen::VectorXd da(npar);
-  std::cout << "dE:" << '\t' 
-            << -1.0*delta*f.transpose()*s.inverse()*f
-            << std::endl;
-  da=s.colPivHouseholderQr().solve(delta*f);
-  for(size_t k=0; k<npar; k++) 
-    (*_par_lst_ptr)[k].val+=da[k];
-  std::cout << "dA:" << std::endl;
-  std::cout << "---" << std::endl; 
-  std::cout << da << std::endl;
-  std::cout << "---" << std::endl; 
+  double dE=-1.0*delta*f.transpose()*s.inverse()*f;
+  std::cout << "dE:" << '\t' << dE << std::endl;
+  if((*_obsvec[0]).local_meas.var().real() < 1e-6) {
+    for(size_t k=0; k<npar; k++) (*_par_lst_ptr)[k].val+=0;
+    std::cout << "variance below convergence theshold:" << '\t' 
+              << (*_obsvec[0]).local_meas.var() << std::endl;
+  } 
+  else {
+    da=s.colPivHouseholderQr().solve(delta*f);
+    for(size_t k=0; k<npar; k++) 
+      (*_par_lst_ptr)[k].val+=da[k];
+    std::cout << "dA:" << std::endl;
+    std::cout << "---" << std::endl; 
+    std::cout << da << std::endl;
+    std::cout << "---" << std::endl; 
+  }
   // SUBSPACE SOLUTION
   // determine which indices to keep
   //Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solve_s;
@@ -368,8 +441,6 @@ void SpinWavefunction::optimize(
      _init_state();
      for(size_t i=0; i<_size; i++) {
        size_t pos=_state.find(i+1);
-       //if(_state[i]==1) pos=i;
-       //else pos=i+_size;
        for(size_t j=0; j<_size; j++) {
          projmat(i, j) = redmat(pos, j);
        }
@@ -379,6 +450,7 @@ void SpinWavefunction::optimize(
     _gmat=redmat*(projmat.inverse());
     _compute_jas_sum();
     _clear_obs();
+    
     for(size_t equil=0; equil<equil_steps; equil++) _sweep();  
     for(size_t simul=0; simul<simul_steps; simul++) {
       _sweep();
@@ -389,19 +461,19 @@ void SpinWavefunction::optimize(
       // measure local  expectation value of the energy
       (*_obsvec[0])(_state, _gmat, _par_lst_ptr->jas_vec());   
     } // simulation loop
-    std::cout << "==================" << std::endl;
-    std::cout << std::left 
-              << "variational step: " 
-              << opt 
-              << " complete"
-              << std::endl;
+    std::cout << "======================" << std::endl;
+    std::cout << "variational step " << opt << " completed" << std::endl;
+    std::cout << "----------------------" << std::endl;
     _update_params(delta);
     _aux_ham_ptr->init(_par_lst_ptr->aux_vec());
     _update_varfile();
     _update_obsfile(opt);
     std::cout << "energy: " 
-              << (*_obsvec[0]).local_meas.ave() 
+              << (*_obsvec[0]).local_meas.ave()
+              << " +/- " 
+              << (*_obsvec[0]).local_meas.var() 
               << std::endl;
+    std::cout << "----------------------" << std::endl;
   } // optimization loop
 }
 

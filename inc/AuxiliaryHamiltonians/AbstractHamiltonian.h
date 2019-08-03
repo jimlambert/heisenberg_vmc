@@ -20,8 +20,9 @@ class AbstractHamiltonian {
     virtual Eigen::MatrixXcd get_matrix()=0;
     virtual Eigen::MatrixXcd get_eigenvectors()=0;
     virtual Eigen::VectorXd  get_eigenvalues()=0;
+    virtual double& noise()=0;
+    virtual const double& noise() const=0;
 };
-
 // ============================================================================= 
 
 } // namespace AuxiliaryHamiltonians

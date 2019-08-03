@@ -58,6 +58,7 @@ typedef std::unique_ptr<Parameters::AuxiliaryParameter> AuxParamUPtr;
 typedef std::shared_ptr<Parameters::AuxiliaryParameter> AuxParamSPtr;
 typedef std::vector<AuxParamUPtr>                       AuxParamUVec;
 typedef std::vector<AuxParamSPtr>                       AuxParamSVec;
+typedef std::vector<Parameters::AuxiliaryParameter>     AuxParamVec;
 
 } // namespace VMC 
 
