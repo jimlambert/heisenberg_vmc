@@ -15,6 +15,7 @@ struct AuxiliaryParameter : Parameter {
   Eigen::MatrixXcd        mmat;
   bool                    vinit; // set true when vmat initialized
   bool                    minit; // set true when mmat initialized
+  
   AuxiliaryParameter(
     ParameterSubtype   apt, // auxiliary parameter type
     const std::string& n,   // parameter name 
@@ -28,6 +29,7 @@ struct AuxiliaryParameter : Parameter {
       vinit(false), 
       minit(false)
   {}
+  
   AuxiliaryParameter(
     ParameterSubtype   apt, // auxiliary parameter type
     const std::string& n,   // parameter name 

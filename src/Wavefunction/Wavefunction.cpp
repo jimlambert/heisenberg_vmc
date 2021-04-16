@@ -303,10 +303,10 @@ void SpinWavefunction::_sweep() {
   for(size_t i=0; i<2*_size; i++) {
     int rand_pos=(*_rand_pos)(_mteng);
     _flipspin(rand_pos);  
-    int rand_pos1=(*_rand_pos)(_mteng);
-    int rand_pos2=(*_rand_pos)(_mteng);
-    if(rand_pos1==rand_pos2) continue;
-    else _exchange(rand_pos1, rand_pos2);
+    //int rand_pos1=(*_rand_pos)(_mteng);
+    //int rand_pos2=(*_rand_pos)(_mteng);
+    //if(rand_pos1==rand_pos2) continue;
+    //else _exchange(rand_pos1, rand_pos2);
   }
   _reinit_gmat();
   _compute_jas_sum(); 

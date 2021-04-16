@@ -33,11 +33,11 @@ int main(int argc, char* argv[]) {
 
   // Initial setup
   // ==========================================================================
-  size_t L=2;
+  size_t L=10;
   size_t equil_steps=5000;
   size_t simul_steps=50000;
-  size_t opt_steps=500;
-  double df=0.01;
+  size_t opt_steps=100;
+  double df=0.05;
   VMC::ParamListSPtr par_lst_ptr=make_shared<VMC::Parameters::ParameterList>();
   std::random_device rd;
   std::mt19937 mteng(rd());
@@ -49,18 +49,18 @@ int main(int argc, char* argv[]) {
   // ==========================================================================
   
   // Ising chain model variational parameters
-  par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, 1, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop1", rand_num(mteng), 0, 1, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop2", rand_num(mteng), 0, 2, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop3", rand_num(mteng), 0, 3, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop4", rand_num(mteng), 0, 4, true, 100);
-  par_lst_ptr->build_aux_param(HOPPING, "hop5", rand_num(mteng), 0, 5, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 1, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair2", rand_num(mteng), 0, 2, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair3", rand_num(mteng), 0, 3, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair4", rand_num(mteng), 0, 4, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair5", rand_num(mteng), 0, 5, true, 100);
-  par_lst_ptr->build_aux_param(PAIRING, "pair6", rand_num(mteng), 0, 6, true, 100);
+  //par_lst_ptr->build_aux_param(ONSITE, "onsite", rand_num(mteng), 0, 1, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop1", rand_num(mteng), 0, 1, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop2", rand_num(mteng), 0, 2, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop3", rand_num(mteng), 0, 3, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop4", rand_num(mteng), 0, 4, true, 100);
+  //par_lst_ptr->build_aux_param(HOPPING, "hop5", rand_num(mteng), 0, 5, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 1, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair2", rand_num(mteng), 0, 2, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair3", rand_num(mteng), 0, 3, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair4", rand_num(mteng), 0, 4, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair5", rand_num(mteng), 0, 5, true, 100);
+  //par_lst_ptr->build_aux_param(PAIRING, "pair6", rand_num(mteng), 0, 6, true, 100);
 
   // parameters where N=4 get's struck from TFIM
   //par_lst_ptr->build_aux_param(ONSITE, "onsite", -0.759878, 0, 1, true, 100);
@@ -81,10 +81,10 @@ int main(int argc, char* argv[]) {
   //par_lst_ptr->build_aux_param(PAIRING, "pair3", 0.00584684, 0, 1, true, 100);
   
   // Heisenberg chain model variational parameters
-  //par_lst_ptr->build_aux_param(HOPPING, "hopp1", rand_num(mteng), 0, 1, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 1, true, 100);
+  par_lst_ptr->build_aux_param(HOPPING, "hopp1", rand_num(mteng), 0, 1, true, 100);
+  par_lst_ptr->build_aux_param(PAIRING, "pair1", rand_num(mteng), 0, 1, true, 100);
   //par_lst_ptr->build_aux_param(PAIRING, "pair2", rand_num(mteng), 0, 2, true, 100);
-  //par_lst_ptr->build_aux_param(PAIRING, "pair3", rand_num(mteng), 0, 3, true, 100); 
+  par_lst_ptr->build_aux_param(PAIRING, "pair3", rand_num(mteng), 0, 3, true, 100); 
 
   // KJG ladder model variational parameters
   //par_lst_ptr->build_aux_param(HOPPING, "hopp11", rand_num(mteng), 0, 0, 0, 1, true, 100);
@@ -98,11 +98,11 @@ int main(int argc, char* argv[]) {
   //par_lst_ptr->build_aux_param(PAIRING, "pair23", rand_num(mteng), 1, 0, 1, 3, true, 100);
   //par_lst_ptr->build_aux_param(PAIRING, "pair1r", rand_num(mteng), 0, 0, 1, 0, true, 100);
 
-  par_lst_ptr->build_jas_param(SPIN, "spin1", 0.1, 0, 1, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin2", 0.1, 0, 2, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin3", 0.1, 0, 3, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin4", 0.1, 0, 4, true, 100);
-  par_lst_ptr->build_jas_param(SPIN, "spin5", 0.1, 0, 5, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin1", 0.1, 0, 1, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin2", 0.1, 0, 2, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin3", 0.1, 0, 3, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin4", 0.1, 0, 4, true, 100);
+  //par_lst_ptr->build_jas_param(SPIN, "spin5", 0.1, 0, 5, true, 100);
   //par_lst_ptr->build_jas_param(SPIN, "spin2", pos_rand_num(mteng), 0, 2, true, 100);
   
   par_lst_ptr->report_aux_params();
@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
   // ==========================================================================
   // Choose energy to minimize
   // ==========================================================================
-  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
-                        ("Ising-Energy", 100, 1.0, 0.5); 
-  //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
-  //                      ("Heisenberg-Energy", 100, 0.5, 1.0, 1.0); 
+  //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::IsingChainEnergy>
+  //                      ("Ising-Energy", 100, 1.0, 0.5); 
+  VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::HeisenbergChainEnergy>
+                        ("Heisenberg-Energy", 100, 1.0, 1.0, 1.0); 
   //VMC::ObsUPtr enrg_ptr=make_unique<VMC::Observables::KjgLadderEnergy>
   //                      ("KJG-Energy", 100, 1.0, 1.0, 0.0, 0.0); 
   // ==========================================================================
